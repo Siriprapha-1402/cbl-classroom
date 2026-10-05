@@ -1,0 +1,75 @@
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ChevronRight, Clock } from 'lucide-react';
+import api from '../../lib/api';
+import { useAuthStore } from '../../store/authStore';
+
+export default function Home() {
+  const { user } = useAuthStore();
+  const navigate = useNavigate();
+  const [challenges, setChallenges] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api.get('/challenges').then(r => setChallenges(r.data.challenges || [])).catch(console.error).finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <div className="flex justify-center items-center h-64"><div className="animate-spin rounded-full h-10 w-10 border-4 border-primary border-t-transparent"/></div>;
+
+  const statusConfig = {
+    graded:      { label: 'ตรวจแล้ว',   cls: 'bg-green-100 text-green-700',  emoji: '✅' },
+    submitted:   { label: 'รอตรวจ',     cls: 'bg-blue-100 text-blue-700',    emoji: '📤' },
+    in_progress: { label: 'กำลังทำ',    cls: 'bg-yellow-100 text-yellow-700', emoji: '⏳' },
+  };
+
+  return (
+    <div className="max-w-2xl mx-auto space-y-5">
+      {/* Welcome */}
+      <div className="bg-gradient-to-r from-primary to-primary-light rounded-2xl p-6 text-white">
+        <p className="text-white/70 text-sm mb-1">ยินดีต้อนรับ 👋</p>
+        <h1 className="text-xl font-bold">{user?.name}</h1>
+        <p className="text-white/60 text-sm mt-1">{user?.student_id || user?.username} · ปวช.1/1</p>
+      </div>
+
+      {/* Challenges */}
+      <div>
+        <h2 className="font-bold text-gray-700 mb-3">กิจกรรมทั้งหมด</h2>
+        {challenges.length === 0 ? (
+          <div className="card text-center py-14 text-gray-400">
+            <p className="text-4xl mb-3">📋</p>
+            <p className="font-medium">ยังไม่มีกิจกรรม</p>
+            <p className="text-sm mt-1">รอครูประกาศกิจกรรมได้เลยครับ</p>
+          </div>
+        ) : challenges.map(c => {
+          const st = statusConfig[c.my_status];
+          return (
+            <div key={c.id} onClick={() => navigate(`/student/challenges/${c.id}`)}
+              className="card mb-3 flex items-center justify-between cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all group">
+              <div className="flex-1 min-w-0">
+                {st && (
+                  <span className={`badge text-xs mb-2 ${st.cls}`}>{st.emoji} {st.label}</span>
+                )}
+                {!st && (
+                  <span className="badge text-xs mb-2 bg-primary/10 text-primary">🆕 ใหม่!</span>
+                )}
+                <h3 className="font-bold text-gray-800 truncate">{c.title}</h3>
+                {c.description && <p className="text-sm text-gray-400 mt-0.5 truncate">{c.description}</p>}
+                {c.deadline && (
+                  <p className="flex items-center gap-1 text-xs text-gray-400 mt-1.5">
+                    <Clock size={12}/>
+                    หมดเขต {new Date(c.deadline).toLocaleDateString('th-TH', { weekday:'short', day:'numeric', month:'long', hour:'2-digit', minute:'2-digit' })}
+                  </p>
+                )}
+              </div>
+              <div className="ml-4 flex-shrink-0">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white shadow transition-all ${c.my_status === 'graded' ? 'bg-green-500' : c.my_status ? 'bg-yellow-400' : 'bg-primary group-hover:scale-110'}`}>
+                  <ChevronRight size={18}/>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}

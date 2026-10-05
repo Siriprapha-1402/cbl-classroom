@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-cbg text-text;
+    font-family: 'Prompt', 'Nunito', sans-serif;
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Prompt', 'Nunito', sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  /* ปุ่มและ label ใช้ font-semibold */
+  button, label, th {
+    font-family: 'Prompt', 'Nunito', sans-serif;
+  }
+
+  /* Input ให้อ่านง่าย */
+  input, textarea, select {
+    font-family: 'Prompt', 'Nunito', sans-serif;
+    font-weight: 400;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-primary text-white rounded-xl px-6 py-3 font-semibold hover:bg-primary-dark transition-all shadow-md hover:shadow-lg;
+    font-family: 'Prompt', sans-serif;
+    letter-spacing: 0.01em;
+  }
+  .card {
+    @apply bg-white rounded-2xl shadow-md p-6;
+  }
+  .badge {
+    @apply inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium;
+    font-family: 'Prompt', sans-serif;
+  }
+}
+
+@media print {
+  aside, header, nav, .no-print {
+    display: none !important;
+  }
+  body, main {
+    background: white !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+  .printable-area {
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+  }
+  table {
+    page-break-inside: auto;
+  }
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+}
+
