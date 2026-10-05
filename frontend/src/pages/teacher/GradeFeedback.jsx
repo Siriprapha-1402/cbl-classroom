@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, FileText, Save, ExternalLink, CheckSquare, ListChecks, Users, CheckCircle2, Circle, AlertCircle, ClipboardCheck } from 'lucide-react';
-import api from '../../lib/api';
+import api, { API_SERVER } from '../../lib/api';
 
 export default function GradeFeedback() {
   const navigate = useNavigate();
@@ -268,7 +268,7 @@ export default function GradeFeedback() {
                   <p className="font-medium text-gray-800 truncate text-xs">{submission.file_name}</p>
                 </div>
                 <a
-                  href={`http://localhost:5000/uploads/${submission.file_path?.split('/').pop() || submission.file_name}`}
+                  href={`${API_SERVER}/uploads/${submission.file_path?.split('/').pop() || submission.file_name}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="p-1 bg-primary/10 text-primary rounded-lg hover:bg-primary/20"

@@ -33,6 +33,24 @@ powershell -ExecutionPolicy Bypass -Command "npm run dev"
 
 ---
 
+## ⚡ การ Deploy ขึ้น Vercel (เชื่อมต่อกับ GitHub)
+
+ระบบนี้รองรับการ Deploy Frontend ขึ้น **Vercel** โดยผูกกับ GitHub Repository อัตโนมัติ (CI/CD):
+
+1. ไปที่เว็บไซต์ **[vercel.com](https://vercel.com)** และเข้าสู่ระบบ (แนะนำ Login ด้วย **Continue with GitHub**)
+2. คลิกปุ่ม **"Add New..."** ➔ เลือก **"Project"**
+3. ที่ส่วน **Import Git Repository** ให้เลือก **`Siriprapha-1402/cbl-classroom`** แล้วกด **"Import"**
+4. ในหน้าตั้งค่าโปรเจกต์ (Configure Project):
+   - **Framework Preset:** Vite *(ระบบตรวจพบให้อัตโนมัติ)*
+   - **Root Directory:** เลือก `frontend` (หรือปล่อยว่างไว้ตามที่ระบบกำหนดใน `vercel.json`)
+   - **Environment Variables:**
+     - `VITE_API_URL`: ระบุ URL ของ Backend API เช่น `https://your-backend.onrender.com/api` (หากมี)
+5. คลิกปุ่ม **"Deploy"**
+6. เมื่อ Deploy เสร็จสิ้น Vercel จะสร้าง Production Domain (เช่น `https://cbl-classroom.vercel.app`) ให้พร้อมใช้งานทันที ทุกครั้งที่มีการ `git push` ขึ้น GitHub Vercel จะอัปเดตให้อัตโนมัติ
+
+---
+
+
 ## 👥 บัญชีผู้ใช้งานในระบบ (Accounts)
 
 ### 👨‍🏫 ครูผู้สอน (Teacher)

@@ -20,7 +20,7 @@ import {
   BookOpen,
   RotateCcw
 } from 'lucide-react';
-import api from '../../lib/api';
+import api, { API_SERVER } from '../../lib/api';
 
 export default function TeacherAssessments() {
   const [activeTab, setActiveTab] = useState('behavior'); // 'behavior' | 'skills'
@@ -313,10 +313,10 @@ export default function TeacherAssessments() {
     let url = '';
     if (type === 'behavior') {
       const cid = selectedChallengeId ? `?challengeId=${selectedChallengeId}` : '';
-      url = `http://localhost:5000/api/assessments/export/behavior/csv${cid}`;
+      url = `${API_SERVER}/api/assessments/export/behavior/csv${cid}`;
     } else {
       const cid = assessmentType === 'challenge' && selectedChallengeId ? `&challengeId=${selectedChallengeId}` : '';
-      url = `http://localhost:5000/api/assessments/export/skills/csv?assessmentType=${assessmentType}${cid}`;
+      url = `${API_SERVER}/api/assessments/export/skills/csv?assessmentType=${assessmentType}${cid}`;
     }
     window.open(url, '_blank');
   };

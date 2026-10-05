@@ -1,6 +1,11 @@
 import axios from 'axios';
 
-const api = axios.create({ baseURL: 'http://localhost:5000/api' });
+export const API_SERVER = import.meta.env.VITE_API_URL 
+  ? import.meta.env.VITE_API_URL.replace(/\/api\/?$/, '') 
+  : (import.meta.env.DEV ? 'http://localhost:5000' : '');
+
+const api = axios.create({ baseURL: `${API_SERVER}/api` });
+
 
 api.interceptors.request.use(config => {
   const token = localStorage.getItem('cbl_token');
