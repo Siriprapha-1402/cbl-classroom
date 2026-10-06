@@ -131,15 +131,55 @@ router.post('/:id/publish', requireRole('teacher'), (req, res) => {
 
 // PUT /api/challenges/:id - Update challenge
 router.put('/:id', requireRole('teacher'), (req, res) => {
-  const { title, description, scenario, goals, deliverables, duration_minutes, start_date, deadline, max_score, rubric, difficulty, group_size, status } = req.body;
-  const challenge = db.prepare('SELECT * FROM challenges WHERE id = ? AND teacher_id = ?').get(req.params.id, req.user.id);
+  const { title, description, scenario, goals, deliverables, duration_minutes, start_date, deadline, max_score, rubric, difficulty, group_size, status, missions, checklistItems } = req.body;
+  const challenge = db.prepare('SELECT * FROM challenges WHERE id = ?').get(req.params.id);
   if (!challenge) return res.status(404).json({ error: 'ไม่พบ Challenge' });
 
-  db.prepare(`
-    UPDATE challenges SET title=?, description=?, scenario=?, goals=?, deliverables=?, duration_minutes=?, start_date=?, deadline=?, max_score=?, rubric=?, difficulty=?, group_size=?, status=? WHERE id=?
-  `).run(title || challenge.title, description, scenario, goals, deliverables, duration_minutes || challenge.duration_minutes, start_date, deadline, max_score || challenge.max_score, rubric, difficulty || challenge.difficulty, group_size || challenge.group_size, status || challenge.status, challenge.id);
+  const safe = (v) => (v === undefined || v === '') ? null : v;
 
-  res.json({ message: 'อัปเดต Challenge สำเร็จ' });
+  db.prepare(`
+    UPDATE challenges SET 
+      title = ?, description = ?, scenario = ?, goals = ?, deliverables = ?,
+      duration_minutes = ?, start_date = ?, deadline = ?, max_score = ?,
+      rubric = ?, difficulty = ?, group_size = ?, status = ?
+    WHERE id = ?
+  `).run(
+    safe(title) || challenge.title,
+    safe(description),
+    safe(scenario),
+    safe(goals),
+    safe(deliverables),
+    duration_minutes !== undefined ? (Number(duration_minutes) || 30) : challenge.duration_minutes,
+    safe(start_date) || challenge.start_date,
+    safe(deadline),
+    max_score !== undefined ? (Number(max_score) || 100) : challenge.max_score,
+    safe(rubric) || challenge.rubric,
+    safe(difficulty) || challenge.difficulty,
+    group_size !== undefined ? (Number(group_size) || 1) : challenge.group_size,
+    safe(status) || challenge.status || 'active',
+    challenge.id
+  );
+
+  // อัปเดตขั้นตอน (missions)
+  if (Array.isArray(missions)) {
+    db.prepare('DELETE FROM missions WHERE challenge_id = ?').run(challenge.id);
+    const mStmt = db.prepare('INSERT INTO missions (challenge_id, order_num, title, description, xp_reward) VALUES (?, ?, ?, ?, ?)');
+    missions.forEach((m, i) => {
+      mStmt.run(challenge.id, i + 1, safe(m.title) || `Mission ${i+1}`, safe(m.description) || '', Number(m.xp_reward) || 10);
+    });
+  }
+
+  // อัปเดตรายการตรวจสอบ (checklistItems)
+  if (Array.isArray(checklistItems)) {
+    db.prepare('DELETE FROM checklist_items WHERE challenge_id = ?').run(challenge.id);
+    const cStmt = db.prepare('INSERT INTO checklist_items (challenge_id, item_text, order_num) VALUES (?, ?, ?)');
+    checklistItems.forEach((item, i) => {
+      cStmt.run(challenge.id, typeof item === 'string' ? item : safe(item.item_text) || '', i + 1);
+    });
+  }
+
+  logActivity(req.user.id, 'UPDATE_CHALLENGE', 'challenge', challenge.id, JSON.stringify({ title }));
+  res.json({ message: 'อัปเดต Challenge สำเร็จ', challengeId: challenge.id });
 });
 
 // DELETE /api/challenges/:id

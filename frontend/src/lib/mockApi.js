@@ -411,6 +411,55 @@ export async function handleMockRequest(config) {
       }
       return { status: 200, data: { challenge, missions, checklistItems, studentProgress } };
     }
+    if (method === 'put') {
+      const c = (store.challenges || []).find(ch => ch.id === cid);
+      if (!c) {
+        const err = new Error('ไม่พบ Challenge');
+        err.response = { status: 404, data: { error: 'ไม่พบ Challenge' } };
+        throw err;
+      }
+      if (body.title) c.title = body.title.trim();
+      if (body.description !== undefined) c.description = body.description;
+      if (body.scenario !== undefined) c.scenario = body.scenario;
+      if (body.goals !== undefined) c.goals = body.goals;
+      if (body.deliverables !== undefined) c.deliverables = body.deliverables;
+      if (body.deadline !== undefined) c.deadline = body.deadline;
+      if (body.max_score !== undefined) c.max_score = Number(body.max_score) || 100;
+      if (body.difficulty !== undefined) c.difficulty = body.difficulty;
+      if (body.status !== undefined) c.status = body.status;
+      else c.status = 'active';
+
+      // Update missions
+      if (Array.isArray(body.missions)) {
+        store.missions = (store.missions || []).filter(m => m.challenge_id !== cid);
+        body.missions.forEach((m, idx) => {
+          store.missions.push({
+            id: m.id || (Date.now() + idx),
+            challenge_id: cid,
+            order_num: idx + 1,
+            title: m.title || m,
+            description: m.description || '',
+            xp_reward: m.xp_reward || 10
+          });
+        });
+      }
+
+      // Update checklist
+      if (Array.isArray(body.checklistItems)) {
+        store.checklist_items = (store.checklist_items || []).filter(cl => cl.challenge_id !== cid);
+        body.checklistItems.forEach((item, idx) => {
+          store.checklist_items.push({
+            id: (typeof item === 'object' && item.id) ? item.id : (Date.now() + idx + 100),
+            challenge_id: cid,
+            item_text: typeof item === 'string' ? item : (item.item_text || ''),
+            order_num: idx + 1
+          });
+        });
+      }
+
+      saveStore(store);
+      return { status: 200, data: { message: 'อัปเดตกิจกรรมสำเร็จ', challenge: c, challengeId: c.id } };
+    }
     if (method === 'delete') {
       store.challenges = store.challenges.filter(c => c.id !== cid);
       store.missions = store.missions.filter(m => m.challenge_id !== cid);

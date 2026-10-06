@@ -51,6 +51,8 @@ export default function App() {
           <Route path="dashboard" element={<TeacherDashboard />} />
           <Route path="challenges" element={<ChallengeList />} />
           <Route path="challenges/create" element={<CreateChallenge />} />
+          <Route path="challenges/edit/:id" element={<CreateChallenge />} />
+          <Route path="challenges/:id/edit" element={<CreateChallenge />} />
           <Route path="groups" element={<TeacherGroups />} />
           <Route path="submissions" element={<Submissions />} />
           <Route path="grading/:id" element={<GradeFeedback />} />

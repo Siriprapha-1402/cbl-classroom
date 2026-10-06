@@ -85,7 +85,12 @@ export default function ChallengeList() {
                   <span>📤 ส่งแล้ว {c.submitted_count || 0} คน</span>
                 </div>
               </div>
-              <div className="flex gap-2 flex-shrink-0">
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <button onClick={() => navigate(`/teacher/challenges/edit/${c.id}`)}
+                  className="px-3 py-1.5 text-xs bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-lg font-medium flex items-center gap-1 transition-colors border border-amber-200/50"
+                  title="แก้ไขกิจกรรม">
+                  <Edit3 size={13}/> แก้ไข
+                </button>
                 <button onClick={() => navigate('/teacher/submissions')}
                   className="px-3 py-1.5 text-xs bg-primary/10 text-primary rounded-lg hover:bg-primary/20 font-medium">
                   ดูผลงาน
@@ -97,7 +102,8 @@ export default function ChallengeList() {
                   </button>
                 )}
                 <button onClick={() => handleDelete(c.id)}
-                  className="p-1.5 text-gray-300 hover:text-red-400 rounded-lg hover:bg-red-50 transition-colors">
+                  className="p-1.5 text-gray-300 hover:text-red-400 rounded-lg hover:bg-red-50 transition-colors"
+                  title="ลบกิจกรรม">
                   <Trash2 size={15}/>
                 </button>
               </div>
