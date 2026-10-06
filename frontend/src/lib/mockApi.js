@@ -614,17 +614,240 @@ export async function handleMockRequest(config) {
     }));
     let myGroup = null;
     if (currentUser?.role === 'student') {
-      myGroup = groups.find(g => g.members?.some(m => m.id === currentUser.id || m.student_code === currentUser.username)) || null;
+      myGroup = groups.find(g => g.members?.some(m => m.id === currentUser.id || m.student_code === currentUser.username || m.student_code === currentUser.student_id)) || null;
     }
     return { status: 200, data: { groups, myGroup } };
   }
 
+  // Create Group
   if (url === '/groups' && method === 'post') {
-    const newG = { id: Date.now(), name: body.name || 'กลุ่มใหม่', class_id: 1, members: [] };
     store.groups = store.groups || [];
+    const membersList = [];
+    const memberIds = Array.isArray(body.memberIds) ? body.memberIds : [];
+    
+    // Remove selected members from existing groups
+    if (memberIds.length > 0) {
+      store.groups.forEach(g => {
+        if (g.members) {
+          g.members = g.members.filter(m => !memberIds.includes(m.id));
+          g.member_count = g.members.length;
+          if (g.leader_id && memberIds.includes(g.leader_id)) {
+            g.leader_id = g.members[0]?.id || null;
+            g.leader = g.members[0] || null;
+          }
+        }
+      });
+      memberIds.forEach(sid => {
+        const u = store.users.find(usr => usr.id === sid);
+        if (u) {
+          membersList.push({
+            id: u.id,
+            name: u.name,
+            username: u.username,
+            student_code: u.student_id || u.username,
+            class_name: u.class_name || 'ปวช.1/1'
+          });
+        }
+      });
+    }
+
+    const leaderId = body.leaderId || (membersList.length > 0 ? membersList[0].id : null);
+    const leader = membersList.find(m => m.id === leaderId) || null;
+
+    const newG = {
+      id: Date.now(),
+      name: body.name || `กลุ่ม ${store.groups.length + 1}`,
+      class_id: 1,
+      members: membersList,
+      leader_id: leaderId,
+      leader: leader,
+      member_count: membersList.length
+    };
     store.groups.push(newG);
     saveStore(store);
-    return { status: 200, data: { group: newG } };
+    return { status: 201, data: { message: 'สร้างกลุ่มสำเร็จ', group: newG, groupId: newG.id } };
+  }
+
+  // Edit Group (PUT /groups/:id)
+  const grpPutMatch = url.match(/^\/groups\/(\d+)$/);
+  if (grpPutMatch && method === 'put') {
+    const gid = Number(grpPutMatch[1]);
+    store.groups = store.groups || [];
+    const grp = store.groups.find(g => g.id === gid);
+    if (!grp) {
+      const err = new Error('ไม่พบกลุ่ม');
+      err.response = { status: 404, data: { error: 'ไม่พบกลุ่ม' } };
+      throw err;
+    }
+
+    if (body.name && body.name.trim()) {
+      grp.name = body.name.trim();
+    }
+
+    if (Array.isArray(body.memberIds)) {
+      const targetIds = body.memberIds;
+      // Remove these members from any other group
+      store.groups.forEach(g => {
+        if (g.id !== gid && g.members) {
+          g.members = g.members.filter(m => !targetIds.includes(m.id));
+          g.member_count = g.members.length;
+          if (g.leader_id && targetIds.includes(g.leader_id)) {
+            g.leader_id = g.members[0]?.id || null;
+            g.leader = g.members[0] || null;
+          }
+        }
+      });
+
+      // Assemble new members for this group
+      const newMembers = [];
+      targetIds.forEach(sid => {
+        const u = store.users.find(usr => usr.id === sid);
+        if (u) {
+          newMembers.push({
+            id: u.id,
+            name: u.name,
+            username: u.username,
+            student_code: u.student_id || u.username,
+            class_name: u.class_name || 'ปวช.1/1'
+          });
+        }
+      });
+      grp.members = newMembers;
+      grp.member_count = newMembers.length;
+    }
+
+    if (body.leaderId !== undefined) {
+      grp.leader_id = body.leaderId || null;
+      grp.leader = (grp.members || []).find(m => m.id === grp.leader_id) || null;
+    } else {
+      // Ensure leader is still valid
+      if (grp.leader_id && !grp.members?.some(m => m.id === grp.leader_id)) {
+        grp.leader_id = grp.members?.[0]?.id || null;
+        grp.leader = grp.members?.[0] || null;
+      }
+    }
+
+    saveStore(store);
+    return { status: 200, data: { message: 'แก้ไขกลุ่มสำเร็จ', group: grp } };
+  }
+
+  // Clear all groups (DELETE /groups)
+  if (url === '/groups' && method === 'delete') {
+    store.groups = [];
+    saveStore(store);
+    return { status: 200, data: { message: 'ลบกลุ่มทั้งหมดสำเร็จ' } };
+  }
+
+  // Delete single group (DELETE /groups/:id)
+  const grpDelMatch = url.match(/^\/groups\/(\d+)$/);
+  if (grpDelMatch && method === 'delete') {
+    const gid = Number(grpDelMatch[1]);
+    store.groups = (store.groups || []).filter(g => g.id !== gid);
+    saveStore(store);
+    return { status: 200, data: { message: 'ลบกลุ่มสำเร็จ' } };
+  }
+
+  // Add member to group (POST /groups/:id/members)
+  const addMemMatch = url.match(/^\/groups\/(\d+)\/members$/);
+  if (addMemMatch && method === 'post') {
+    const gid = Number(addMemMatch[1]);
+    const sid = Number(body.studentId);
+    store.groups = store.groups || [];
+    const grp = store.groups.find(g => g.id === gid);
+    if (grp && sid) {
+      // Remove from other groups
+      store.groups.forEach(g => {
+        if (g.members) {
+          g.members = g.members.filter(m => m.id !== sid);
+          g.member_count = g.members.length;
+        }
+      });
+      // Add to this group
+      const u = store.users.find(usr => usr.id === sid);
+      if (u && !grp.members.some(m => m.id === sid)) {
+        grp.members.push({
+          id: u.id,
+          name: u.name,
+          username: u.username,
+          student_code: u.student_id || u.username,
+          class_name: u.class_name || 'ปวช.1/1'
+        });
+        grp.member_count = grp.members.length;
+        if (!grp.leader_id) {
+          grp.leader_id = u.id;
+          grp.leader = grp.members[0];
+        }
+      }
+      saveStore(store);
+    }
+    return { status: 200, data: { message: 'เพิ่มสมาชิกเรียบร้อย' } };
+  }
+
+  // Remove member from group (DELETE /groups/:id/members/:studentId)
+  const delMemMatch = url.match(/^\/groups\/(\d+)\/members\/(\d+)$/);
+  if (delMemMatch && method === 'delete') {
+    const gid = Number(delMemMatch[1]);
+    const sid = Number(delMemMatch[2]);
+    store.groups = store.groups || [];
+    const grp = store.groups.find(g => g.id === gid);
+    if (grp && grp.members) {
+      grp.members = grp.members.filter(m => m.id !== sid);
+      grp.member_count = grp.members.length;
+      if (grp.leader_id === sid) {
+        grp.leader_id = grp.members[0]?.id || null;
+        grp.leader = grp.members[0] || null;
+      }
+      saveStore(store);
+    }
+    return { status: 200, data: { message: 'นำสมาชิกออกจากกลุ่มสำเร็จ' } };
+  }
+
+  // Student join group (POST /groups/:id/join)
+  const joinMatch = url.match(/^\/groups\/(\d+)\/join$/);
+  if (joinMatch && method === 'post') {
+    const gid = Number(joinMatch[1]);
+    const currentUser = getCurrentUser(store);
+    store.groups = store.groups || [];
+    const grp = store.groups.find(g => g.id === gid);
+    if (grp && currentUser) {
+      // Remove from any existing group
+      store.groups.forEach(g => {
+        if (g.members) {
+          g.members = g.members.filter(m => m.id !== currentUser.id);
+          g.member_count = g.members.length;
+        }
+      });
+      grp.members = grp.members || [];
+      grp.members.push({
+        id: currentUser.id,
+        name: currentUser.name,
+        username: currentUser.username,
+        student_code: currentUser.student_id || currentUser.username,
+        class_name: currentUser.class_name || 'ปวช.1/1'
+      });
+      grp.member_count = grp.members.length;
+      saveStore(store);
+    }
+    return { status: 200, data: { message: 'เข้าร่วมกลุ่มสำเร็จ' } };
+  }
+
+  // Student leave group (POST /groups/:id/leave)
+  const leaveMatch = url.match(/^\/groups\/(\d+)\/leave$/);
+  if (leaveMatch && method === 'post') {
+    const gid = Number(leaveMatch[1]);
+    const currentUser = getCurrentUser(store);
+    store.groups = store.groups || [];
+    const grp = store.groups.find(g => g.id === gid);
+    if (grp && currentUser && grp.members) {
+      grp.members = grp.members.filter(m => m.id !== currentUser.id);
+      grp.member_count = grp.members.length;
+      if (grp.leader_id === currentUser.id) {
+        grp.leader_id = grp.members[0]?.id || null;
+        grp.leader = grp.members[0] || null;
+      }
+      saveStore(store);
+    }
+    return { status: 200, data: { message: 'ออกจากกลุ่มสำเร็จ' } };
   }
 
   // Random grouping for all 43 students
@@ -647,7 +870,8 @@ export async function handleMockRequest(config) {
         id: stu.id,
         name: stu.name,
         username: stu.username,
-        student_code: stu.student_id || stu.username
+        student_code: stu.student_id || stu.username,
+        class_name: stu.class_name || 'ปวช.1/1'
       });
     });
     newGroups.forEach(g => {

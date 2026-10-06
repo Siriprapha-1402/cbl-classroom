@@ -71,10 +71,118 @@ router.post('/', (req, res) => {
   // เพิ่มสมาชิก
   const members = Array.isArray(memberIds) ? memberIds : [];
   if (req.user.role === 'student' && !members.includes(req.user.id)) members.push(req.user.id);
+
+  if (members.length > 0) {
+    const removeOther = db.prepare(`
+      DELETE FROM group_members WHERE student_id = ? AND group_id IN (SELECT id FROM groups WHERE class_id = ?)
+    `);
+    members.forEach(sid => removeOther.run(sid, classId));
+  }
+
   const stmt = db.prepare('INSERT OR IGNORE INTO group_members (group_id, student_id) VALUES (?, ?)');
   members.forEach(sid => stmt.run(gId, sid));
 
+  if (!leaderId && members.length > 0) {
+    db.prepare('UPDATE groups SET leader_id = ? WHERE id = ?').run(members[0], gId);
+  }
+
   res.status(201).json({ message: 'สร้างกลุ่มสำเร็จ', groupId: gId });
+});
+
+// PUT /api/groups/:id — ครูแก้ไขกลุ่ม (ชื่อกลุ่ม, หัวหน้ากลุ่ม, สมาชิก)
+router.put('/:id', requireRole('teacher'), (req, res) => {
+  const groupId = req.params.id;
+  const { name, leaderId, memberIds } = req.body;
+  const classId = getClassId(req.user);
+  if (!classId) return res.status(400).json({ error: 'ไม่พบชั้นเรียน' });
+
+  const group = db.prepare('SELECT * FROM groups WHERE id = ? AND class_id = ?').get(groupId, classId);
+  if (!group) return res.status(404).json({ error: 'ไม่พบกลุ่ม' });
+
+  // อัปเดตชื่อกลุ่ม
+  if (name && name.trim()) {
+    db.prepare('UPDATE groups SET name = ? WHERE id = ?').run(name.trim(), groupId);
+  }
+
+  // อัปเดตสมาชิก
+  if (Array.isArray(memberIds)) {
+    // ลบนักเรียนเหล่านี้ออกจากกลุ่มอื่นในชั้นเดียวกันก่อน
+    const removeOther = db.prepare(`
+      DELETE FROM group_members WHERE student_id = ? AND group_id != ? AND group_id IN (SELECT id FROM groups WHERE class_id = ?)
+    `);
+    memberIds.forEach(sid => removeOther.run(sid, groupId, classId));
+
+    // ล้างสมาชิกเดิมของกลุ่มนี้
+    db.prepare('DELETE FROM group_members WHERE group_id = ?').run(groupId);
+
+    // ใส่สมาชิกใหม่
+    const insertMember = db.prepare('INSERT OR IGNORE INTO group_members (group_id, student_id) VALUES (?, ?)');
+    memberIds.forEach(sid => insertMember.run(groupId, sid));
+  }
+
+  // อัปเดตหัวหน้ากลุ่ม
+  if (leaderId !== undefined) {
+    db.prepare('UPDATE groups SET leader_id = ? WHERE id = ?').run(leaderId || null, groupId);
+  } else if (Array.isArray(memberIds)) {
+    if (group.leader_id && !memberIds.includes(group.leader_id)) {
+      const newLeader = memberIds.length > 0 ? memberIds[0] : null;
+      db.prepare('UPDATE groups SET leader_id = ? WHERE id = ?').run(newLeader, groupId);
+    } else if (!group.leader_id && memberIds.length > 0) {
+      db.prepare('UPDATE groups SET leader_id = ? WHERE id = ?').run(memberIds[0], groupId);
+    }
+  }
+
+  res.json({ message: 'แก้ไขกลุ่มสำเร็จ' });
+});
+
+// POST /api/groups/:id/members — ครูเพิ่มสมาชิกเข้ากลุ่ม
+router.post('/:id/members', requireRole('teacher'), (req, res) => {
+  const { studentId } = req.body;
+  const groupId = req.params.id;
+  const classId = getClassId(req.user);
+  if (!studentId || !classId) return res.status(400).json({ error: 'ข้อมูลไม่ครบถ้วน' });
+
+  // ลบออกจากกลุ่มอื่นในชั้นนี้
+  db.prepare(`
+    DELETE FROM group_members WHERE student_id = ? AND group_id IN (SELECT id FROM groups WHERE class_id = ?)
+  `).run(studentId, classId);
+
+  // เพิ่มเข้ากลุ่มนี้
+  db.prepare('INSERT OR IGNORE INTO group_members (group_id, student_id) VALUES (?, ?)').run(groupId, studentId);
+
+  const g = db.prepare('SELECT leader_id FROM groups WHERE id = ?').get(groupId);
+  if (!g?.leader_id) {
+    db.prepare('UPDATE groups SET leader_id = ? WHERE id = ?').run(studentId, groupId);
+  }
+
+  res.json({ message: 'เพิ่มสมาชิกเรียบร้อย' });
+});
+
+// DELETE /api/groups/:id/members/:studentId — ครูลบสมาชิกออกจากกลุ่ม
+router.delete('/:id/members/:studentId', requireRole('teacher'), (req, res) => {
+  const { id: groupId, studentId } = req.params;
+  db.prepare('DELETE FROM group_members WHERE group_id = ? AND student_id = ?').run(groupId, studentId);
+
+  const g = db.prepare('SELECT leader_id FROM groups WHERE id = ?').get(groupId);
+  if (g?.leader_id == studentId) {
+    const nextMem = db.prepare('SELECT student_id FROM group_members WHERE group_id = ? LIMIT 1').get(groupId);
+    db.prepare('UPDATE groups SET leader_id = ? WHERE id = ?').run(nextMem?.student_id || null, groupId);
+  }
+
+  res.json({ message: 'นำสมาชิกออกจากกลุ่มสำเร็จ' });
+});
+
+// DELETE /api/groups — ครูลบกลุ่มทั้งหมด
+router.delete('/', requireRole('teacher'), (req, res) => {
+  const classId = getClassId(req.user);
+  if (!classId) return res.status(400).json({ error: 'ไม่พบชั้นเรียน' });
+  const existing = db.prepare('SELECT id FROM groups WHERE class_id = ?').all(classId);
+  existing.forEach(g => {
+    db.prepare('DELETE FROM group_members WHERE group_id = ?').run(g.id);
+    db.prepare('DELETE FROM group_canva_links WHERE group_id = ?').run(g.id);
+    db.prepare('DELETE FROM groups WHERE id = ?').run(g.id);
+  });
+  res.json({ message: 'ลบกลุ่มทั้งหมดสำเร็จ' });
 });
 
 // POST /api/groups/:id/join — นักเรียนเข้าร่วมกลุ่ม
@@ -156,6 +264,7 @@ router.post('/random', requireRole('teacher'), (req, res) => {
 // DELETE /api/groups/:id — ครูลบกลุ่ม
 router.delete('/:id', requireRole('teacher'), (req, res) => {
   db.prepare('DELETE FROM group_members WHERE group_id = ?').run(req.params.id);
+  db.prepare('DELETE FROM group_canva_links WHERE group_id = ?').run(req.params.id);
   db.prepare('DELETE FROM groups WHERE id = ?').run(req.params.id);
   res.json({ message: 'ลบกลุ่มสำเร็จ' });
 });
