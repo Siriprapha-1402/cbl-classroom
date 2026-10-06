@@ -29,9 +29,14 @@ router.get('/', (req, res) => {
   const challenges = db.prepare(`
     SELECT c.*,
       sc.status as my_status, sc.id as student_challenge_id,
-      sc.started_at, sc.submitted_at, sc.is_on_time
+      sc.started_at, sc.submitted_at, sc.is_on_time,
+      sc.canva_link,
+      s.score,
+      f.comment as feedback_comment
     FROM challenges c
     LEFT JOIN student_challenges sc ON sc.challenge_id = c.id AND sc.student_id = ?
+    LEFT JOIN scores s ON s.student_challenge_id = sc.id
+    LEFT JOIN feedback f ON f.student_challenge_id = sc.id
     WHERE c.class_id = ? AND c.status = 'active'
     ORDER BY c.deadline ASC
   `).all(req.user.id, enrollment.class_id);
@@ -72,9 +77,11 @@ router.post('/', requireRole('teacher'), (req, res) => {
   // แปลง undefined → null เพื่อป้องกัน SQLite binding error
   const safe = (v) => (v === undefined || v === '') ? null : v;
 
+  const initialStatus = req.body.status || 'active';
+
   const result = db.prepare(`
     INSERT INTO challenges (class_id, teacher_id, title, description, scenario, goals, deliverables, duration_minutes, start_date, deadline, max_score, rubric, difficulty, group_size, status)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft')
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
     classRow.id, req.user.id,
     safe(title), safe(description), safe(scenario), safe(goals), safe(deliverables),
@@ -83,7 +90,8 @@ router.post('/', requireRole('teacher'), (req, res) => {
     Number(max_score) || 100,
     safe(rubric),
     safe(difficulty) || 'medium',
-    Number(group_size) || 1
+    Number(group_size) || 1,
+    initialStatus
   );
 
   const challengeId = result.lastInsertRowid;
@@ -100,6 +108,16 @@ router.post('/', requireRole('teacher'), (req, res) => {
 
   logActivity(req.user.id, 'CREATE_CHALLENGE', 'challenge', challengeId, JSON.stringify({ title }));
   res.status(201).json({ message: 'สร้าง Challenge สำเร็จ', challengeId });
+});
+
+// POST /api/challenges/:id/publish - Publish challenge
+router.post('/:id/publish', requireRole('teacher'), (req, res) => {
+  const challenge = db.prepare('SELECT id FROM challenges WHERE id = ? AND teacher_id = ?').get(req.params.id, req.user.id);
+  if (!challenge) return res.status(404).json({ error: 'ไม่พบ Challenge' });
+
+  db.prepare("UPDATE challenges SET status = 'active' WHERE id = ?").run(req.params.id);
+  logActivity(req.user.id, 'PUBLISH_CHALLENGE', 'challenge', req.params.id);
+  res.json({ message: 'เผยแพร่ Challenge สำเร็จ', status: 'active' });
 });
 
 // PUT /api/challenges/:id - Update challenge

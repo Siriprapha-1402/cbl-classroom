@@ -1,6 +1,6 @@
 import initialData from './initialData.json';
 
-const STORAGE_KEY = 'cbl_mock_db_v2';
+const STORAGE_KEY = 'cbl_mock_db_clean_v5';
 
 // Rubric definition
 export const RUBRIC_STRUCTURE = {
@@ -72,7 +72,7 @@ function getStore() {
   } catch (e) {
     console.warn('Failed to parse mock store from localStorage', e);
   }
-  // Initialize with initialData
+  // Initialize with initialData (Clean Start)
   const store = {
     users: initialData.users || [],
     classes: initialData.classes || [],
@@ -103,6 +103,14 @@ function getStore() {
 function saveStore(store) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('cbl_storage_update'));
+      try {
+        const bc = new BroadcastChannel('cbl_channel');
+        bc.postMessage({ type: 'UPDATED' });
+        bc.close();
+      } catch (e) {}
+    }
   } catch (e) {
     console.warn('Failed to save mock store to localStorage', e);
   }
@@ -202,11 +210,40 @@ export async function handleMockRequest(config) {
     return { status: 200, data: { user } };
   }
 
-  // 3. Challenges
+  // 3. Challenges - GET
   if (url === '/challenges' && method === 'get') {
-    return { status: 200, data: { challenges: store.challenges } };
+    const currentUser = getCurrentUser(store);
+    if (currentUser?.role === 'teacher') {
+      const challenges = (store.challenges || []).map(c => {
+        const scs = (store.student_challenges || []).filter(sc => sc.challenge_id === c.id);
+        const submitted_count = scs.filter(sc => sc.status === 'submitted' || sc.status === 'graded').length;
+        const on_time_count = scs.filter(sc => sc.is_on_time === 1 || (sc.status === 'submitted' && !sc.is_late)).length;
+        const total_students = (store.users || []).filter(u => u.role === 'student').length;
+        const mission_count = (store.missions || []).filter(m => m.challenge_id === c.id).length;
+        return { ...c, submitted_count, on_time_count, total_students, mission_count };
+      });
+      return { status: 200, data: { challenges } };
+    } else {
+      // Student view - connected directly with student progress
+      const challenges = (store.challenges || []).filter(c => c.status === 'active').map(c => {
+        const sc = (store.student_challenges || []).find(s => s.challenge_id === c.id && s.student_id === currentUser.id);
+        return {
+          ...c,
+          my_status: sc ? sc.status : null,
+          student_challenge_id: sc ? sc.id : null,
+          started_at: sc?.started_at || null,
+          submitted_at: sc?.submitted_at || null,
+          is_on_time: sc?.is_on_time ?? 1,
+          canva_link: sc?.canva_link || null,
+          score: sc?.score ?? null,
+          feedback_comment: sc?.feedback_comment || null
+        };
+      });
+      return { status: 200, data: { challenges } };
+    }
   }
 
+  // Challenges - Create
   if (url === '/challenges' && method === 'post') {
     const newId = store.challenges.length ? Math.max(...store.challenges.map(c => c.id)) + 1 : 1;
     const newChallenge = {
@@ -218,17 +255,17 @@ export async function handleMockRequest(config) {
       scenario: body.scenario || '',
       goals: body.goals || '',
       deliverables: body.deliverables || '',
-      duration_minutes: body.duration_minutes || 30,
+      duration_minutes: Number(body.duration_minutes) || 30,
       start_date: body.start_date || new Date().toISOString(),
       deadline: body.deadline || new Date(Date.now() + 7 * 86400000).toISOString(),
-      max_score: body.max_score || 100,
+      max_score: Number(body.max_score) || 100,
       rubric: body.rubric || '',
       difficulty: body.difficulty || 'medium',
-      group_size: body.group_size || 1,
-      status: 'active',
+      group_size: Number(body.group_size) || 1,
+      status: body.status || 'active', // เผยแพร่ทันทีเพื่อให้นักเรียนมองเห็น
       created_at: new Date().toISOString()
     };
-    store.challenges.push(newChallenge);
+    store.challenges.unshift(newChallenge);
 
     // Save missions
     if (Array.isArray(body.missions)) {
@@ -257,79 +294,96 @@ export async function handleMockRequest(config) {
     }
 
     saveStore(store);
-    return { status: 200, data: { challenge: newChallenge, id: newId } };
+    return { status: 201, data: { challenge: newChallenge, challengeId: newId, id: newId } };
   }
 
-  // Publish / delete challenge
+  // Publish challenge
   const pubMatch = url.match(/^\/challenges\/(\d+)\/publish$/);
   if (pubMatch && method === 'post') {
     const cid = Number(pubMatch[1]);
     const c = store.challenges.find(ch => ch.id === cid);
     if (c) c.status = 'active';
     saveStore(store);
-    return { status: 200, data: { ok: true, challenge: c } };
+    return { status: 200, data: { ok: true, status: 'active', challenge: c } };
   }
 
+  // Challenge detail / delete
   const chalDetailMatch = url.match(/^\/challenges\/(\d+)$/);
   if (chalDetailMatch) {
     const cid = Number(chalDetailMatch[1]);
     if (method === 'get') {
-      const challenge = store.challenges.find(c => c.id === cid) || store.challenges[0];
+      const challenge = store.challenges.find(c => c.id === cid);
+      if (!challenge) {
+        const err = new Error('ไม่พบ Challenge');
+        err.response = { status: 404, data: { error: 'ไม่พบ Challenge' } };
+        throw err;
+      }
       const missions = store.missions.filter(m => m.challenge_id === cid);
       const checklistItems = store.checklist_items.filter(cl => cl.challenge_id === cid);
       const currentUser = getCurrentUser(store);
       let studentProgress = null;
       if (currentUser?.role === 'student') {
         let sc = store.student_challenges.find(s => s.challenge_id === cid && s.student_id === currentUser.id);
-        if (!sc) {
-          sc = { id: Date.now(), student_id: currentUser.id, challenge_id: cid, status: 'not_started' };
-          store.student_challenges.push(sc);
-          saveStore(store);
+        if (sc) {
+          const missionProgress = store.mission_progress.filter(mp => mp.student_challenge_id === sc.id);
+          const checklistCompletions = store.checklist_completions.filter(cc => cc.student_challenge_id === sc.id);
+          studentProgress = { ...sc, missionProgress, checklistCompletions };
         }
-        const missionProgress = store.mission_progress.filter(mp => mp.student_challenge_id === sc.id);
-        const checklistCompletions = store.checklist_completions.filter(cc => cc.student_challenge_id === sc.id);
-        studentProgress = { ...sc, missionProgress, checklistCompletions };
       }
       return { status: 200, data: { challenge, missions, checklistItems, studentProgress } };
     }
     if (method === 'delete') {
       store.challenges = store.challenges.filter(c => c.id !== cid);
+      store.missions = store.missions.filter(m => m.challenge_id !== cid);
+      store.checklist_items = store.checklist_items.filter(cl => cl.challenge_id !== cid);
       saveStore(store);
       return { status: 200, data: { ok: true } };
     }
   }
 
-  // Start challenge
+  // Start challenge (Student starts task)
   const startMatch = url.match(/^\/challenges\/(\d+)\/start$/);
   if (startMatch && method === 'post') {
     const cid = Number(startMatch[1]);
     const user = getCurrentUser(store);
     let sc = store.student_challenges.find(s => s.challenge_id === cid && s.student_id === user.id);
     if (!sc) {
-      sc = { id: Date.now(), student_id: user.id, challenge_id: cid, status: 'in_progress', started_at: new Date().toISOString() };
+      sc = {
+        id: Date.now(),
+        student_id: user.id,
+        challenge_id: cid,
+        status: 'in_progress',
+        started_at: new Date().toISOString()
+      };
       store.student_challenges.push(sc);
     } else {
       sc.status = 'in_progress';
       sc.started_at = sc.started_at || new Date().toISOString();
     }
     saveStore(store);
-    return { status: 200, data: { ok: true, studentChallenge: sc } };
+    return { status: 200, data: { message: 'เริ่ม Challenge สำเร็จ', studentChallengeId: sc.id } };
   }
 
-  // Submit challenge link
+  // Submit challenge link (Student submits Canva link)
   const submitLinkMatch = url.match(/^\/challenges\/(\d+)\/(submit-link|submit)$/);
   if (submitLinkMatch && method === 'post') {
     const cid = Number(submitLinkMatch[1]);
     const user = getCurrentUser(store);
     let sc = store.student_challenges.find(s => s.challenge_id === cid && s.student_id === user.id);
     if (!sc) {
-      sc = { id: Date.now(), student_id: user.id, challenge_id: cid, status: 'submitted', started_at: new Date().toISOString() };
+      sc = {
+        id: Date.now(),
+        student_id: user.id,
+        challenge_id: cid,
+        started_at: new Date().toISOString()
+      };
       store.student_challenges.push(sc);
     }
     sc.status = 'submitted';
     sc.submitted_at = new Date().toISOString();
     sc.canva_link = body.canvaLink || body.link || '';
     sc.note = body.note || '';
+    sc.is_on_time = 1;
 
     store.submissions.push({
       id: Date.now(),
@@ -343,32 +397,38 @@ export async function handleMockRequest(config) {
     return { status: 200, data: { ok: true, studentChallenge: sc } };
   }
 
-  // Submissions per challenge
+  // Teacher view submissions for challenge - connects all 43 students
   const subsMatch = url.match(/^\/challenges\/(\d+)\/submissions$/);
   if (subsMatch && method === 'get') {
     const cid = Number(subsMatch[1]);
-    const submissions = store.student_challenges
-      .filter(sc => sc.challenge_id === cid)
-      .map(sc => {
-        const student = store.users.find(u => u.id === sc.student_id) || {};
-        return {
-          id: sc.id,
-          student_challenge_id: sc.id,
-          student_user_id: sc.student_id,
-          student_id: sc.student_id,
-          student_name: student.name || 'นักเรียน',
-          student_code: student.student_id || student.username,
-          status: sc.status,
-          submitted_at: sc.submitted_at,
-          score: sc.score || null,
-          max_score: 100,
-          canva_link: sc.canva_link || ''
-        };
-      });
+    const students = (store.users || []).filter(u => u.role === 'student');
+    const challenge = (store.challenges || []).find(c => c.id === cid);
+    const submissions = students.map(u => {
+      const sc = (store.student_challenges || []).find(s => s.challenge_id === cid && s.student_id === u.id);
+      return {
+        id: sc ? sc.id : null,
+        student_challenge_id: sc ? sc.id : null,
+        student_user_id: u.id,
+        student_id: u.id,
+        student_name: u.name,
+        student_code: u.student_id || u.username,
+        username: u.username,
+        status: sc ? sc.status : 'not_started',
+        started_at: sc?.started_at || null,
+        submitted_at: sc?.submitted_at || null,
+        score: sc?.score ?? null,
+        max_score: challenge?.max_score || 100,
+        canva_link: sc?.canva_link || '',
+        total_missions: (store.missions || []).filter(m => m.challenge_id === cid).length,
+        completed_missions: sc ? (store.mission_progress || []).filter(mp => mp.student_challenge_id === sc.id).length : 0,
+        total_checklists: (store.checklist_items || []).filter(ci => ci.challenge_id === cid).length,
+        completed_checklists: sc ? (store.checklist_completions || []).filter(cc => cc.student_challenge_id === sc.id).length : 0
+      };
+    });
     return { status: 200, data: { submissions } };
   }
 
-  // 4. Missions
+  // 4. Missions progress
   const missionToggleMatch = url.match(/^\/missions\/(\d+)\/complete$/);
   if (missionToggleMatch && method === 'post') {
     const mid = Number(missionToggleMatch[1]);
@@ -388,7 +448,7 @@ export async function handleMockRequest(config) {
     return { status: 200, data: { ok: true } };
   }
 
-  // 5. Checklists
+  // 5. Checklists toggle
   const clToggleMatch = url.match(/^\/checklists\/(\d+)\/toggle$/);
   if (clToggleMatch && method === 'post') {
     const clid = Number(clToggleMatch[1]);
@@ -402,6 +462,7 @@ export async function handleMockRequest(config) {
         id: Date.now(),
         checklist_item_id: clid,
         student_challenge_id: sc.id,
+        checked: 1,
         completed_at: new Date().toISOString()
       });
     }
@@ -413,12 +474,80 @@ export async function handleMockRequest(config) {
     return { status: 200, data: { ok: true } };
   }
 
-  // 6. Students
+  // 6. Grading - Teacher views & grades student
+  const gradeInitMatch = url.match(/^\/grade\/init\/(\d+)\/(\d+)$/);
+  if (gradeInitMatch && method === 'post') {
+    const cid = Number(gradeInitMatch[1]);
+    const sid = Number(gradeInitMatch[2]);
+    let sc = (store.student_challenges || []).find(s => s.challenge_id === cid && s.student_id === sid);
+    if (!sc) {
+      sc = {
+        id: Date.now(),
+        challenge_id: cid,
+        student_id: sid,
+        status: 'in_progress',
+        started_at: new Date().toISOString()
+      };
+      store.student_challenges.push(sc);
+      saveStore(store);
+    }
+    return { status: 200, data: { studentChallengeId: sc.id } };
+  }
+
+  const gradeMatch = url.match(/^\/grade\/(\d+)$/);
+  if (gradeMatch) {
+    const scId = Number(gradeMatch[1]);
+    let sc = (store.student_challenges || []).find(s => s.id === scId);
+    const student = sc ? store.users.find(u => u.id === sc.student_id) : store.users[1];
+    const challenge = sc ? store.challenges.find(ch => ch.id === sc.challenge_id) : store.challenges[0];
+    const missions = (store.missions || []).filter(m => m.challenge_id === challenge?.id);
+    const checklist = (store.checklist_items || []).filter(ci => ci.challenge_id === challenge?.id);
+
+    if (method === 'get') {
+      return {
+        status: 200,
+        data: {
+          submission: {
+            id: sc?.id,
+            student_challenge_id: sc?.id,
+            canva_link: sc?.canva_link || null,
+            challenge_title: challenge?.title || 'Challenge',
+            max_score: challenge?.max_score || 100,
+            submitted_at: sc?.submitted_at || null,
+            submission_status: sc?.status === 'submitted' || sc?.status === 'graded' ? 'on_time' : 'pending'
+          },
+          student: {
+            id: student?.id,
+            name: student?.name,
+            username: student?.username,
+            student_code: student?.student_id || student?.username
+          },
+          grade: sc?.score !== undefined && sc?.score !== null ? { score: sc.score, comment: sc.feedback_comment || '' } : null,
+          checklist,
+          missions
+        }
+      };
+    }
+    if (method === 'post') {
+      if (sc) {
+        sc.score = Number(body.score);
+        sc.status = 'graded';
+        sc.feedback_comment = body.comment || '';
+        sc.graded_at = new Date().toISOString();
+        saveStore(store);
+      }
+      return { status: 200, data: { ok: true, message: 'บันทึกคะแนนและ Feedback เรียบร้อย' } };
+    }
+  }
+
+  // 7. Students List for Teacher
   if (url === '/students' && method === 'get') {
     const students = store.users
       .filter(u => u.role === 'student')
       .map((s, idx) => {
-        const xp = 150 + idx * 10;
+        const scs = (store.student_challenges || []).filter(sc => sc.student_id === s.id);
+        const completed_count = scs.filter(sc => sc.status === 'submitted' || sc.status === 'graded').length;
+        const xp = scs.reduce((acc, sc) => acc + (sc.score || 0), 0);
         const lvl = getUserLevel(xp);
         return {
           id: s.id,
@@ -427,14 +556,14 @@ export async function handleMockRequest(config) {
           student_code: s.student_id || s.username,
           class_name: s.class_name || 'ปวช.1/1',
           orderNum: idx + 1,
-          completed_count: idx % 3 === 0 ? 2 : 1,
-          submitted_count: 2,
-          on_time_count: 2,
-          onTimeRate: 100,
+          completed_count,
+          submitted_count: completed_count,
+          on_time_count: completed_count,
+          onTimeRate: completed_count > 0 ? 100 : 0,
           xp,
           level: lvl.level,
           levelName: lvl.nameTh,
-          group_name: idx < 5 ? 'กลุ่ม 01' : (idx < 10 ? 'กลุ่ม 02' : '-')
+          group_name: '-'
         };
       });
     return { status: 200, data: { students } };
@@ -444,16 +573,17 @@ export async function handleMockRequest(config) {
   if (stuDetailMatch && method === 'get') {
     const sid = Number(stuDetailMatch[1]);
     const s = store.users.find(u => u.id === sid && u.role === 'student') || store.users[1];
-    const xp = 200;
+    const scs = (store.student_challenges || []).filter(sc => sc.student_id === s?.id);
+    const xp = scs.reduce((acc, sc) => acc + (sc.score || 0), 0);
     const lvl = getUserLevel(xp);
     return {
       status: 200,
       data: {
-        student: { ...s, student_code: s.student_id || s.username },
+        student: { ...s, student_code: s?.student_id || s?.username },
         xp,
         level: lvl,
-        challenges: [],
-        badges: store.badges.slice(0, 3),
+        challenges: scs,
+        badges: [],
         activityLogs: []
       }
     };
@@ -463,17 +593,14 @@ export async function handleMockRequest(config) {
     return { status: 200, data: { ok: true, message: 'รีเซ็ตข้อมูลสำเร็จ' } };
   }
 
-  // 7. Groups
+  // 8. Groups
   if (url === '/groups' && method === 'get') {
-    const groups = store.groups.map(g => {
-      const members = store.users.filter(u => u.role === 'student').slice(0, 5);
-      return { ...g, members, member_count: members.length };
-    });
-    return { status: 200, data: { groups } };
+    return { status: 200, data: { groups: store.groups || [] } };
   }
 
   if (url === '/groups' && method === 'post') {
     const newG = { id: Date.now(), name: body.name || 'กลุ่มใหม่', class_id: 1, members: [] };
+    store.groups = store.groups || [];
     store.groups.push(newG);
     saveStore(store);
     return { status: 200, data: { group: newG } };
@@ -505,7 +632,7 @@ export async function handleMockRequest(config) {
     return { status: 200, data: { ok: true } };
   }
 
-  // 8. Assessments
+  // 9. Assessments
   if (url === '/assessments/rubric-definition') {
     return { status: 200, data: RUBRIC_STRUCTURE };
   }
@@ -517,36 +644,33 @@ export async function handleMockRequest(config) {
       student_name: s.name,
       student_code: s.student_id || s.username,
       order_num: idx + 1,
-      status: idx % 5 === 0 ? 'late' : (idx % 10 === 0 ? 'missing' : 'on_time')
+      status: 'on_time'
     }));
-    return { status: 200, data: { records, summary: { onTime: 38, late: 3, missing: 2, total: 43 } } };
+    return { status: 200, data: { records, summary: { onTime: 43, late: 0, missing: 0, total: 43 } } };
   }
 
   if (url.startsWith('/assessments/skills')) {
     return { status: 200, data: { skills: [], total: 0 } };
   }
 
-  // 9. Analytics
+  // 10. Analytics
   if (url === '/analytics/class') {
+    const activeChal = (store.challenges || []).filter(c => c.status === 'active').length;
     return {
       status: 200,
       data: {
         totalStudents: 43,
-        activeChallenges: store.challenges.filter(c => c.status === 'active').length || 3,
-        submissionRate: 92,
-        avgScore: 84.5,
+        activeChallenges: activeChal,
+        submissionRate: 0,
+        avgScore: 0,
         xpDistribution: [
-          { name: 'Beginner', count: 5 },
-          { name: 'Explorer', count: 18 },
-          { name: 'Creator', count: 12 },
-          { name: 'Problem Solver', count: 6 },
-          { name: 'Challenge Master', count: 2 }
+          { name: 'Beginner', count: 43 },
+          { name: 'Explorer', count: 0 },
+          { name: 'Creator', count: 0 },
+          { name: 'Problem Solver', count: 0 },
+          { name: 'Challenge Master', count: 0 }
         ],
-        submissionTrends: [
-          { week: 'W1', onTime: 40, late: 3 },
-          { week: 'W2', onTime: 41, late: 2 },
-          { week: 'W3', onTime: 42, late: 1 }
-        ]
+        submissionTrends: []
       }
     };
   }
@@ -555,69 +679,51 @@ export async function handleMockRequest(config) {
     return {
       status: 200,
       data: {
-        beforeAvg: 62.4,
-        afterAvg: 85.8,
-        improvementPercent: 37.5,
-        pairedTTest: { t: 9.84, p: '< 0.001', significant: true }
+        beforeAvg: 0,
+        afterAvg: 0,
+        improvementPercent: 0,
+        pairedTTest: { t: 0, p: 'N/A', significant: false }
       }
     };
   }
 
-  // 10. Gamification
+  // 11. Gamification
   if (url === '/gamification/my/xp') {
+    const user = getCurrentUser(store);
+    const scs = (store.student_challenges || []).filter(sc => sc.student_id === user?.id);
+    const xp = scs.reduce((acc, sc) => acc + (sc.score || 0), 0);
+    const lvl = getUserLevel(xp);
     return {
       status: 200,
-      data: {
-        xp: 280,
-        level: { level: 2, nameTh: 'Explorer', nameEn: 'Explorer', minXp: 150, maxXp: 399 },
-        nextLevelXp: 400
-      }
+      data: { xp, level: lvl, nextLevelXp: lvl.maxXp + 1 }
     };
   }
 
   if (url === '/gamification/my/badges') {
-    const badges = store.badges.map((b, idx) => ({
+    const badges = (store.badges || []).map(b => ({
       ...b,
-      unlocked: idx < 3,
-      unlocked_at: idx < 3 ? '2026-09-20' : null
+      unlocked: false,
+      unlocked_at: null
     }));
     return { status: 200, data: { badges } };
   }
 
   if (url === '/gamification/my/progress') {
+    const user = getCurrentUser(store);
+    const scs = (store.student_challenges || []).filter(sc => sc.student_id === user?.id);
+    const completed = scs.filter(sc => sc.status === 'submitted' || sc.status === 'graded').length;
+    const xp = scs.reduce((acc, sc) => acc + (sc.score || 0), 0);
     return {
       status: 200,
       data: {
-        xp: 280,
-        level: { level: 2, nameTh: 'Explorer', nameEn: 'Explorer' },
-        completedChallenges: 2,
-        onTimeRate: 100,
-        badgesCount: 3,
-        streakDays: 4
+        xp,
+        level: getUserLevel(xp),
+        completedChallenges: completed,
+        onTimeRate: completed > 0 ? 100 : 0,
+        badgesCount: 0,
+        streakDays: 0
       }
     };
-  }
-
-  // 11. Grading
-  const gradeMatch = url.match(/^\/grade\/(\d+)$/);
-  if (gradeMatch) {
-    if (method === 'get') {
-      return {
-        status: 200,
-        data: {
-          score: { score: 90, max_score: 100 },
-          feedback: { strengths: 'จัดวางองค์ประกอบได้สวยงาม สีสันน่าสนใจ', improvements: 'เพิ่มขนาดตัวอักษรหัวข้อ' },
-          submission: { canva_link: 'https://canva.com/design/example' }
-        }
-      };
-    }
-    if (method === 'post') {
-      return { status: 200, data: { ok: true, message: 'บันทึกคะแนนและ Feedback เรียบร้อย' } };
-    }
-  }
-
-  if (url.startsWith('/grade/init/')) {
-    return { status: 200, data: { id: Date.now() } };
   }
 
   // 12. Reflections
@@ -627,14 +733,7 @@ export async function handleMockRequest(config) {
 
   // 13. Notifications
   if (url === '/notifications') {
-    return {
-      status: 200,
-      data: {
-        notifications: [
-          { id: 1, title: 'ยินดีต้อนรับสู่ห้องเรียน CBL!', message: 'เริ่มต้นทำภารกิจแรกกันเลย', created_at: new Date().toISOString(), is_read: 0 }
-        ]
-      }
-    };
+    return { status: 200, data: { notifications: [] } };
   }
 
   // Fallback for any other endpoint
