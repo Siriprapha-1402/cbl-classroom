@@ -107,7 +107,8 @@ function getStore() {
     behavior_map: {},
     behavior_notes: {},
     skill_assessments: {},
-    canva_links: {}
+    canva_links: {},
+    group_canva_links: {}
   };
   saveStore(store);
   return store;
@@ -511,9 +512,26 @@ export async function handleMockRequest(config) {
     }
     sc.status = 'submitted';
     sc.submitted_at = new Date().toISOString();
-    sc.canva_link = body.canvaLink || body.link || '';
+    sc.canva_link = (body.canvaLink || body.link || '').trim();
     sc.note = body.note || '';
     sc.is_on_time = 1;
+
+    // บันทึกลิงก์ Canva ประจำกลุ่มของนักเรียนด้วย (เฉพาะกลุ่มนี้เท่านั้น)
+    const myGrp = (store.groups || []).find(g => 
+      g.members?.some(m => m.id === userId || m.student_code === user?.username || m.student_code === user?.student_id)
+    );
+    if (myGrp && sc.canva_link) {
+      store.group_canva_links = store.group_canva_links || {};
+      store.group_canva_links[`${cid}_${myGrp.id}`] = {
+        challengeId: cid,
+        groupId: myGrp.id,
+        groupName: myGrp.name,
+        link: sc.canva_link,
+        setBy: userId,
+        setByName: user?.name || 'สมาชิกในกลุ่ม',
+        updatedAt: new Date().toISOString()
+      };
+    }
 
     store.submissions.push({
       id: Date.now(),
@@ -535,6 +553,12 @@ export async function handleMockRequest(config) {
     const challenge = (store.challenges || []).find(c => c.id === cid);
     const submissions = students.map(u => {
       const sc = (store.student_challenges || []).find(s => s.challenge_id === cid && s.student_id === u.id);
+      const myGrp = (store.groups || []).find(g => 
+        g.members?.some(m => m.id === u.id || m.student_code === u.username || m.student_code === u.student_id)
+      );
+      const groupLink = myGrp ? (store.group_canva_links?.[`${cid}_${myGrp.id}`]?.link || '') : '';
+      const finalCanvaLink = sc?.canva_link || groupLink || '';
+
       return {
         id: sc ? sc.id : null,
         student_challenge_id: sc ? sc.id : null,
@@ -543,12 +567,14 @@ export async function handleMockRequest(config) {
         student_name: u.name,
         student_code: u.student_id || u.username,
         username: u.username,
+        group_id: myGrp?.id || null,
+        group_name: myGrp?.name || 'ยังไม่มีกลุ่ม',
         status: sc ? sc.status : 'not_started',
         started_at: sc?.started_at || null,
         submitted_at: sc?.submitted_at || null,
         score: sc?.score ?? null,
         max_score: challenge?.max_score || 100,
-        canva_link: sc?.canva_link || '',
+        canva_link: finalCanvaLink,
         total_missions: (store.missions || []).filter(m => m.challenge_id === cid).length,
         completed_missions: sc ? (store.mission_progress || []).filter(mp => mp.student_challenge_id === sc.id).length : 0,
         total_checklists: (store.checklist_items || []).filter(ci => ci.challenge_id === cid).length,
@@ -1194,7 +1220,7 @@ export async function handleMockRequest(config) {
     return { status: 200, data: { ok: true, groups: newGroups } };
   }
 
-  // Group Canva Link
+  // Group Canva Link (ต้องเป็นของแต่ละกลุ่มเท่านั้น ให้นักเรียนเพิ่มเอง)
   const canvaLinkMatch = url.match(/^\/groups\/canva-link\/(\d+)$/);
   if (canvaLinkMatch) {
     const cid = Number(canvaLinkMatch[1]);
@@ -1203,33 +1229,109 @@ export async function handleMockRequest(config) {
       g.members?.some(m => m.id === currentUser?.id || m.student_code === currentUser?.username || m.student_code === currentUser?.student_id)
     );
     const hasGroup = !!myGrp;
-    const link = store.canva_links?.[cid] || '';
+    store.group_canva_links = store.group_canva_links || {};
 
     if (method === 'get') {
+      if (!hasGroup) {
+        return { 
+          status: 200, 
+          data: { 
+            hasGroup: false,
+            groupId: null,
+            groupName: null,
+            link: null,
+            canvaLink: null,
+            setByName: null,
+            members: []
+          } 
+        };
+      }
+
+      // ดึงลิงก์ Canva เฉพาะของกลุ่มตัวเองเท่านั้น
+      const groupKey = `${cid}_${myGrp.id}`;
+      const groupData = store.group_canva_links[groupKey];
+
+      // Fallback: ตรวจสอบว่าสมาชิกในกลุ่มนี้มีใครเคยส่งลิงก์ไว้หรือไม่
+      let fallbackLink = null;
+      let fallbackName = null;
+      if (!groupData?.link && myGrp.members) {
+        for (const m of myGrp.members) {
+          const memSc = (store.student_challenges || []).find(s => s.student_id === m.id && s.challenge_id === cid);
+          if (memSc?.canva_link) {
+            fallbackLink = memSc.canva_link;
+            fallbackName = m.name;
+            break;
+          }
+        }
+      }
+
+      const link = groupData?.link || fallbackLink || null;
+      const setByName = groupData?.setByName || fallbackName || null;
+
       return { 
         status: 200, 
         data: { 
-          hasGroup,
-          groupId: myGrp?.id || null,
-          groupName: myGrp?.name || null,
+          hasGroup: true,
+          groupId: myGrp.id,
+          groupName: myGrp.name,
           link,
           canvaLink: link,
-          members: myGrp?.members || []
+          setByName,
+          setBy: groupData?.setBy || null,
+          members: myGrp.members || []
         } 
       };
     }
+
     if (method === 'post') {
-      store.canva_links = store.canva_links || {};
-      store.canva_links[cid] = body.canvaLink || '';
+      if (!hasGroup) {
+        return { 
+          status: 400, 
+          data: { error: 'คุณยังไม่ได้อยู่ในกลุ่ม — ลิงก์ Canva ต้องเป็นของแต่ละกลุ่มเท่านั้น กรุณาเข้ากลุ่มก่อน' } 
+        };
+      }
+
+      const newLink = (body.canvaLink || body.link || '').trim();
+      if (!newLink) {
+        return { 
+          status: 400, 
+          data: { error: 'กรุณากรอกลิงก์ Canva' } 
+        };
+      }
+
+      const groupKey = `${cid}_${myGrp.id}`;
+      store.group_canva_links[groupKey] = {
+        challengeId: cid,
+        groupId: myGrp.id,
+        groupName: myGrp.name,
+        link: newLink,
+        setBy: currentUser?.id || null,
+        setByName: currentUser?.name || 'สมาชิกในกลุ่ม',
+        updatedAt: new Date().toISOString()
+      };
+
+      // ซิงค์ canva_link ไปยัง student_challenges ของสมาชิกในกลุ่มที่เริ่มกิจกรรมแล้ว
+      if (myGrp.members) {
+        myGrp.members.forEach(m => {
+          const memSc = (store.student_challenges || []).find(s => s.student_id === m.id && s.challenge_id === cid);
+          if (memSc && !memSc.canva_link) {
+            memSc.canva_link = newLink;
+          }
+        });
+      }
+
       saveStore(store);
       return { 
         status: 200, 
         data: { 
           ok: true, 
-          hasGroup,
-          groupName: myGrp?.name || null,
-          link: store.canva_links[cid],
-          canvaLink: store.canva_links[cid]
+          hasGroup: true,
+          groupId: myGrp.id,
+          groupName: myGrp.name,
+          link: newLink,
+          canvaLink: newLink,
+          setByName: currentUser?.name || 'สมาชิกในกลุ่ม',
+          message: `ตั้งลิงก์ Canva สำหรับ ${myGrp.name} สำเร็จ`
         } 
       };
     }
@@ -1310,7 +1412,7 @@ export async function handleMockRequest(config) {
         statusLabel,
         isActiveNow: isRecentlyActive,
         lastSeen: act?.lastSeen ? new Date(act.lastSeen).toISOString() : null,
-        canvaLink: sc?.canva_link || null,
+        canvaLink: sc?.canva_link || (grp ? store.group_canva_links?.[`${cid}_${grp.id}`]?.link : null) || null,
         submittedAt: sc?.submitted_at || null,
         isOnTime: sc?.is_on_time ?? 1
       };
@@ -1347,10 +1449,11 @@ export async function handleMockRequest(config) {
     };
   }
 
-  // Summary per group
+  // Summary per group (แยกผลงานและลิงก์ Canva ตามแต่ละกลุ่มอย่างชัดเจน)
   const summaryMatch = url.match(/^\/groups\/summary\/(\d+)$/);
   if (summaryMatch) {
     const cid = Number(summaryMatch[1]);
+    store.group_canva_links = store.group_canva_links || {};
     const groups = (store.groups || []).map(g => {
       const mems = (g.members || []).map(m => {
         const sc = (store.student_challenges || []).find(s => s.student_id === m.id && s.challenge_id === cid);
@@ -1362,11 +1465,21 @@ export async function handleMockRequest(config) {
           score: sc?.score ?? null
         };
       });
+
+      // ดึงลิงก์ Canva เฉพาะของกลุ่ม g นี้เท่านั้น ห้ามปนกับกลุ่มอื่น
+      const groupData = store.group_canva_links[`${cid}_${g.id}`];
+      const memberLink = mems.find(m => m.canva_link)?.canva_link;
+      const canvaLink = groupData?.link || memberLink || null;
+
+      const gradedMems = mems.filter(m => m.score !== null && m.score !== undefined);
+      const avgScore = gradedMems.length > 0 ? (gradedMems.reduce((sum, m) => sum + m.score, 0) / gradedMems.length) : null;
+
       return {
         ...g,
         members: mems,
-        canvaLink: store.canva_links?.[cid] || null,
-        submittedCount: mems.filter(m => m.submitted_at || m.canva_link).length
+        canvaLink,
+        submittedCount: mems.filter(m => m.submitted_at || m.canva_link).length,
+        avgScore
       };
     });
     return { status: 200, data: { groups } };

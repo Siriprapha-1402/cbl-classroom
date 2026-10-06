@@ -42,11 +42,13 @@ export default function ChallengeView() {
   const [note, setNote] = useState('');
   const [myGroup, setMyGroup] = useState(null);
 
-  // Group Canva Link state
+  // Group Canva Link state (เฉพาะของแต่ละกลุ่มเท่านั้น ให้นักเรียนเพิ่มเอง)
   const [groupCanvaInfo, setGroupCanvaInfo] = useState(null); // { link, groupName, setByName, hasGroup }
   const [showSetLink, setShowSetLink] = useState(false);
   const [newCanvaLink, setNewCanvaLink] = useState('');
+  const [submitCanvaLink, setSubmitCanvaLink] = useState('');
   const [settingLink, setSettingLink] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
 
   const heartbeatRef = useRef(null);
 
@@ -140,33 +142,48 @@ export default function ChallengeView() {
     if (link) {
       window.open(link, '_blank');
     } else {
-      // เปิด Canva แล้วขอให้ตั้งลิงก์
       window.open('https://www.canva.com', '_blank');
       setShowSetLink(true);
     }
   };
 
-  // ตั้งลิงก์ Canva ของกลุ่ม
-  const handleSetGroupLink = async () => {
-    if (!newCanvaLink.trim()) return;
+  // ตั้งลิงก์ Canva ของกลุ่มตัวเอง (ให้นักเรียนเพิ่มเอง)
+  const handleSetGroupLink = async (overrideLink) => {
+    const linkToSave = (typeof overrideLink === 'string' ? overrideLink : newCanvaLink).trim();
+    if (!linkToSave) return null;
     setSettingLink(true);
-    const res = await api.post(`/groups/canva-link/${id}`, { canvaLink: newCanvaLink.trim() }).catch(e => {
-      alert(e.response?.data?.error || 'เกิดข้อผิดพลาด'); return null;
+    const res = await api.post(`/groups/canva-link/${id}`, { canvaLink: linkToSave }).catch(e => {
+      alert(e.response?.data?.error || 'เกิดข้อผิดพลาดในการบันทึกลิงก์ Canva ของกลุ่ม'); 
+      return null;
     });
     if (res) {
       await loadGroupCanva();
       setShowSetLink(false);
       setNewCanvaLink('');
+      setSubmitCanvaLink('');
     }
     setSettingLink(false);
+    return res;
   };
 
+  // ส่งงาน — ต้องส่งลิงก์ Canva ของกลุ่มตัวเองเท่านั้น
   const handleSubmitLink = async () => {
-    const submitLink = groupCanvaInfo?.link;
-    if (!submitLink) { alert('กรุณาตั้งลิงก์ Canva ของกลุ่มก่อน'); return; }
+    let submitLink = groupCanvaInfo?.link;
+    if (!submitLink && submitCanvaLink.trim()) {
+      const saved = await handleSetGroupLink(submitCanvaLink.trim());
+      if (!saved) return;
+      submitLink = submitCanvaLink.trim();
+    }
+    if (!submitLink) { 
+      alert('กรุณาเพิ่มลิงก์ Canva ของกลุ่มก่อนส่งงาน'); 
+      return; 
+    }
     setSubmitting(true);
-    await api.post(`/challenges/${id}/submit-link`, { canvaLink: submitLink, note }).catch(console.error);
+    await api.post(`/challenges/${id}/submit-link`, { canvaLink: submitLink, note }).catch(e => {
+      alert(e.response?.data?.error || 'เกิดข้อผิดพลาดในการส่งงาน');
+    });
     await load();
+    await loadGroupCanva();
     setSubmitting(false);
     navigate(`/student/challenges/${id}/summary`);
   };
@@ -295,107 +312,189 @@ export default function ChallengeView() {
         </div>
       )}
 
-      {/* ─── CANVA SECTION ─── */}
+      {/* ─── CANVA SECTION (เฉพาะของแต่ละกลุ่มเท่านั้น ให้นักเรียนเพิ่มเอง) ─── */}
       {isStarted && (
         <div className="card space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="font-bold text-gray-800 flex items-center gap-2">
-              <span className="text-lg">🎨</span> Canva ของกลุ่ม {hasGroup && <span className="text-primary text-sm font-semibold">({currentGroupName})</span>}
-            </h3>
-            {groupCanvaInfo?.link && (
-              <button onClick={() => { setNewCanvaLink(groupCanvaInfo.link); setShowSetLink(true); }}
-                className="flex items-center gap-1 text-xs text-gray-400 hover:text-primary px-2 py-1 rounded-lg hover:bg-gray-100">
-                <Edit3 size={12}/> เปลี่ยนลิงก์
+            <div className="flex items-center gap-2">
+              <span className="text-xl">🎨</span>
+              <div>
+                <h3 className="font-bold text-gray-800 text-sm sm:text-base flex items-center gap-2">
+                  ลิงก์ Canva ของกลุ่ม {hasGroup && <span className="text-primary font-bold">({currentGroupName})</span>}
+                </h3>
+                <p className="text-[11px] text-gray-500">
+                  {hasGroup ? `ลิงก์นี้เฉพาะกลุ่ม "${currentGroupName}" เท่านั้น ให้นักเรียนเพิ่ม/แก้ไขเอง` : 'ต้องมีกลุ่มก่อนเพิ่มหรือส่งลิงก์ Canva'}
+                </p>
+              </div>
+            </div>
+            {hasGroup && groupCanvaInfo?.link && (
+              <button 
+                onClick={() => { setNewCanvaLink(groupCanvaInfo.link); setShowSetLink(!showSetLink); }}
+                className="flex items-center gap-1 text-xs text-primary bg-primary/10 hover:bg-primary/20 px-2.5 py-1.5 rounded-lg font-semibold transition"
+              >
+                <Edit3 size={13}/> {showSetLink ? 'ปิดฟอร์ม' : 'แก้ไขลิงก์'}
               </button>
             )}
           </div>
 
-          {/* 1. กรณีมีลิงก์กลุ่มแล้ว — รวมเหลืออันเดียว สวยงาม ครบถ้วน */}
-          {groupCanvaInfo?.link && !showSetLink && (
-            <div className="p-4 bg-gradient-to-br from-emerald-50/80 to-teal-50/50 rounded-2xl border border-emerald-200 space-y-3">
-              <div className="flex items-center justify-between">
+          {/* กรณีผู้ใช้ยังไม่มีกลุ่ม */}
+          {!hasGroup && (
+            <div className="p-3.5 bg-amber-50 rounded-2xl border border-amber-200 space-y-2">
+              <p className="text-xs font-bold text-amber-800 flex items-center gap-1.5">
+                <span>⚠️</span> <span>คุณยังไม่ได้อยู่ในกลุ่ม</span>
+              </p>
+              <p className="text-xs text-amber-700 leading-relaxed">
+                ลิงก์ผลงาน Canva ต้องเป็นของแต่ละกลุ่มเท่านั้น เพื่อให้นักเรียนในกลุ่มทำงานร่วมกันและส่งงานเป็นกลุ่ม
+              </p>
+              <button 
+                onClick={() => navigate('/student/groups')}
+                className="btn-primary text-xs px-3.5 py-2 rounded-xl"
+              >
+                ไปหน้าเลือกหรือจัดกลุ่ม →
+              </button>
+            </div>
+          )}
+
+          {/* 1. กรณีมีลิงก์ของกลุ่มแล้ว */}
+          {hasGroup && groupCanvaInfo?.link && !showSetLink && (
+            <div className="p-4 bg-gradient-to-br from-emerald-50/90 via-teal-50/60 to-purple-50/40 rounded-2xl border-2 border-emerald-300 space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-1.5">
                 <span className="text-xs font-bold text-emerald-800 flex items-center gap-1.5">
-                  <CheckCircle size={15} className="text-emerald-600"/> เชื่อมต่อลิงก์ Canva กลุ่มแล้ว
+                  <CheckCircle size={15} className="text-emerald-600"/> ลิงก์ Canva ของ {currentGroupName} พร้อมใช้งาน
                 </span>
-                <span className="text-[11px] font-semibold text-emerald-600 bg-emerald-100/80 px-2 py-0.5 rounded-full">
-                  พร้อมทำงานร่วมกัน ✅
+                <span className="text-[11px] font-bold text-emerald-700 bg-emerald-100/90 px-2.5 py-0.5 rounded-full">
+                  เฉพาะกลุ่มนี้เท่านั้น ✅
                 </span>
               </div>
 
-              <div className="flex items-center gap-2.5 p-2.5 bg-white/95 rounded-xl border border-emerald-100 shadow-xs">
-                <Link2 size={16} className="text-emerald-600 flex-shrink-0 ml-0.5"/>
+              <div className="flex items-center gap-2.5 p-3 bg-white rounded-xl border border-emerald-200 shadow-xs">
+                <Link2 size={16} className="text-[#7C5CBF] flex-shrink-0"/>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs text-gray-700 truncate font-mono font-medium">
+                  <p className="text-xs text-gray-800 truncate font-mono font-medium">
                     {groupCanvaInfo.link}
                   </p>
-                  {groupCanvaInfo.setByName && (
-                    <p className="text-[10px] text-gray-400 mt-0.5">ตั้งโดย: {groupCanvaInfo.setByName}</p>
-                  )}
+                  <p className="text-[10px] text-gray-400 mt-0.5 flex items-center gap-1">
+                    <span>👤 เพิ่มโดย: <b className="text-gray-600">{groupCanvaInfo.setByName || 'สมาชิกในกลุ่ม'}</b></span>
+                    <span>·</span>
+                    <span>กลุ่ม: <b className="text-primary">{currentGroupName}</b></span>
+                  </p>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(groupCanvaInfo.link);
+                    setCopiedLink(true);
+                    setTimeout(() => setCopiedLink(false), 2000);
+                  }}
+                  className="text-xs px-2.5 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 font-medium whitespace-nowrap"
+                >
+                  {copiedLink ? 'คัดลอกแล้ว!' : 'คัดลอก'}
+                </button>
               </div>
 
-              <button 
-                onClick={handleOpenCanva}
-                className="w-full py-3 bg-gradient-to-r from-[#7C5CBF] to-[#00C4CC] hover:opacity-95 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all hover:scale-[1.01]"
-              >
-                <ExternalLink size={16}/> 🚀 เปิด Canva ของกลุ่ม
-              </button>
-
-              <p className="text-center text-xs text-gray-500 font-medium">
-                ✅ ทุกคนในกลุ่มจะเปิด Canva เดียวกันเพื่อทำงานร่วมกัน
-              </p>
-            </div>
-          )}
-
-          {/* 2. ถ้ายังไม่มีลิงก์กลุ่ม */}
-          {!groupCanvaInfo?.link && !showSetLink && (
-            <div className="space-y-2">
-              {!hasGroup && (
-                <p className="text-xs text-orange-500 bg-orange-50 p-2.5 rounded-xl border border-orange-200">
-                  ⚠️ คุณยังไม่ได้อยู่ในกลุ่ม — <button className="underline font-bold" onClick={() => navigate('/student/groups')}>เข้ากลุ่มก่อน</button>
-                </p>
-              )}
-              {hasGroup && (
-                <p className="text-xs text-emerald-700 bg-emerald-50 p-2 rounded-xl border border-emerald-100 flex items-center gap-1.5">
-                  <span>✅</span> <span>คุณอยู่ใน <b>{currentGroupName}</b> เรียบร้อยแล้ว</span>
-                </p>
-              )}
-              <p className="text-sm text-gray-500">
-                {hasGroup
-                  ? `กลุ่ม "${currentGroupName}" ยังไม่มีลิงก์ Canva — เปิด Canva สร้าง Slide แล้วนำ Share Link มาวางที่นี่เพื่อทำงานร่วมกัน`
-                  : 'เปิด Canva สร้าง Slide แล้วแชร์ลิงก์ให้คนในกลุ่ม'}
-              </p>
-              <button onClick={handleOpenCanva}
-                className="w-full py-3 bg-gradient-to-r from-[#7C5CBF] to-[#00C4CC] text-white rounded-2xl font-bold flex items-center justify-center gap-2 shadow hover:shadow-lg transition-all">
-                <ExternalLink size={17}/> เปิด Canva เพื่อเริ่มสร้างงาน
-              </button>
-              {hasGroup && (
-                <button onClick={() => setShowSetLink(true)}
-                  className="w-full py-2.5 border-2 border-dashed border-[#7C5CBF]/40 text-[#7C5CBF] rounded-xl text-sm font-semibold hover:bg-[#7C5CBF]/5">
-                  <Link2 size={14} className="inline mr-1"/> วาง Canva Share Link ของกลุ่ม
+              <div className="flex flex-col sm:flex-row gap-2">
+                <button 
+                  onClick={handleOpenCanva}
+                  className="flex-1 py-3 bg-gradient-to-r from-[#7C5CBF] to-[#00C4CC] hover:opacity-95 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all"
+                >
+                  <ExternalLink size={16}/> 🚀 เปิด Canva ของกลุ่ม {currentGroupName}
                 </button>
-              )}
+                <button
+                  type="button"
+                  onClick={() => { setNewCanvaLink(groupCanvaInfo.link); setShowSetLink(true); }}
+                  className="px-4 py-2.5 border border-purple-200 hover:bg-purple-50 text-[#7C5CBF] rounded-xl text-xs font-semibold flex items-center justify-center gap-1"
+                >
+                  <Edit3 size={12}/> เปลี่ยนลิงก์
+                </button>
+              </div>
+
+              <p className="text-center text-[11px] text-gray-500 font-medium">
+                👥 นักเรียนทุกคนใน <b>{currentGroupName}</b> จะเปิดและส่งงานด้วยลิงก์ Canva เดียวกันนี้
+              </p>
             </div>
           )}
 
-          {/* 3. Form ตั้ง / เปลี่ยนลิงก์ */}
-          {showSetLink && (
-            <div className="space-y-2 p-3 bg-purple-50 rounded-xl border border-purple-200">
-              <p className="text-xs font-semibold text-purple-700">📋 วาง Share Link จาก Canva (ลิงก์นี้จะใช้ร่วมกันทั้งกลุ่ม)</p>
+          {/* 2. กรณียังไม่มีลิงก์กลุ่ม — ให้แบบฟอร์มเพิ่มลิงก์ทันที สะดวก ชัดเจน */}
+          {hasGroup && !groupCanvaInfo?.link && !showSetLink && (
+            <div className="p-4 bg-purple-50/80 rounded-2xl border-2 border-dashed border-[#7C5CBF]/40 space-y-3">
+              <div className="flex items-center gap-2 text-purple-900 font-bold text-sm">
+                <span>✨</span>
+                <span>ให้นักเรียนเพิ่มลิงก์ Canva ของกลุ่ม {currentGroupName}</span>
+              </div>
+              <p className="text-xs text-purple-800 leading-relaxed">
+                กลุ่ม <b>"{currentGroupName}"</b> ยังไม่ได้เพิ่มลิงก์ Canva — ให้นักเรียนในกลุ่มเปิด Canva เพื่อสร้างผลงาน แล้วนำ Share Link มาวางที่นี่
+              </p>
+
+              <div className="space-y-2 pt-1">
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <input
+                    className="flex-1 p-2.5 rounded-xl border border-purple-300 text-xs sm:text-sm outline-none focus:ring-2 focus:ring-[#7C5CBF] bg-white font-mono"
+                    placeholder="วาง Canva Share Link (https://www.canva.com/design/...)"
+                    value={newCanvaLink}
+                    onChange={e => setNewCanvaLink(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && handleSetGroupLink()}
+                  />
+                  <button
+                    onClick={() => handleSetGroupLink()}
+                    disabled={settingLink || !newCanvaLink.trim()}
+                    className="px-4 py-2.5 bg-[#7C5CBF] hover:bg-[#6849a6] text-white rounded-xl text-xs font-bold disabled:opacity-50 whitespace-nowrap shadow-xs"
+                  >
+                    {settingLink ? 'กำลังบันทึก...' : '💾 บันทึกลิงก์ของกลุ่ม'}
+                  </button>
+                </div>
+
+                <div className="flex flex-wrap items-center justify-between pt-1 gap-2 text-xs">
+                  <button 
+                    onClick={handleOpenCanva}
+                    className="text-xs text-[#7C5CBF] hover:underline font-semibold flex items-center gap-1"
+                  >
+                    <ExternalLink size={12}/> เปิด Canva เพื่อเริ่มสร้างงาน ↗
+                  </button>
+                  <span className="text-[11px] text-gray-500">
+                    * เมื่อบันทึกแล้ว สมาชิกใน {currentGroupName} ทุกคนจะเห็นและใช้ร่วมกัน
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 3. Form แก้ไข / เปลี่ยนลิงก์ */}
+          {hasGroup && showSetLink && (
+            <div className="p-4 bg-purple-50 rounded-2xl border-2 border-[#7C5CBF]/40 space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-bold text-purple-900 flex items-center gap-1.5">
+                  <Edit3 size={13}/> แก้ไข/เปลี่ยนลิงก์ Canva ของกลุ่ม {currentGroupName}
+                </p>
+                <button 
+                  onClick={() => { setShowSetLink(false); setNewCanvaLink(''); }}
+                  className="text-xs text-gray-400 hover:text-gray-600"
+                >
+                  ✕ ยกเลิก
+                </button>
+              </div>
+              <p className="text-xs text-purple-700">
+                วาง Share Link ใหม่จาก Canva ลิงก์นี้จะอัปเดตสำหรับเพื่อนทุกคนในกลุ่ม <b>{currentGroupName}</b>
+              </p>
               <input
-                className="w-full p-2.5 rounded-xl border border-purple-300 text-sm outline-none focus:ring-2 focus:ring-purple-400 bg-white"
+                className="w-full p-2.5 rounded-xl border border-purple-300 text-xs sm:text-sm outline-none focus:ring-2 focus:ring-[#7C5CBF] bg-white font-mono"
                 placeholder="https://www.canva.com/design/..."
-                value={newCanvaLink} autoFocus
+                value={newCanvaLink}
+                autoFocus
                 onChange={e => setNewCanvaLink(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleSetGroupLink()}
               />
               <div className="flex gap-2">
-                <button onClick={handleSetGroupLink} disabled={settingLink || !newCanvaLink.trim()}
-                  className="flex-1 py-2 bg-[#7C5CBF] text-white rounded-xl text-sm font-semibold disabled:opacity-50">
-                  {settingLink ? 'กำลังบันทึก...' : '✅ ตั้งลิงก์กลุ่ม'}
+                <button 
+                  onClick={() => handleSetGroupLink()}
+                  disabled={settingLink || !newCanvaLink.trim()}
+                  className="flex-1 py-2.5 bg-[#7C5CBF] hover:bg-[#6849a6] text-white rounded-xl text-xs font-bold disabled:opacity-50"
+                >
+                  {settingLink ? 'กำลังบันทึก...' : '💾 บันทึกลิงก์ใหม่สำหรับกลุ่ม'}
                 </button>
-                <button onClick={() => { setShowSetLink(false); setNewCanvaLink(''); }}
-                  className="px-4 py-2 border rounded-xl text-gray-500 text-sm">
+                <button 
+                  onClick={() => { setShowSetLink(false); setNewCanvaLink(''); }}
+                  className="px-4 py-2.5 border rounded-xl text-gray-500 text-xs hover:bg-gray-50"
+                >
                   ยกเลิก
                 </button>
               </div>
@@ -552,29 +651,87 @@ export default function ChallengeView() {
                   </div>
                 ) : (
                   <>
-                    {/* Preview link ที่จะส่ง */}
+                    <div className="p-3.5 bg-blue-50/70 border border-blue-200 rounded-2xl text-xs text-blue-900 space-y-1">
+                      <p className="font-bold flex items-center gap-1.5">
+                        <span>📤</span> <span>ส่งผลงานสำหรับ: <b>{currentGroupName}</b></span>
+                      </p>
+                      <p className="text-blue-700/80 text-[11px]">
+                        ลิงก์ Canva ที่ส่งต้องเป็นของกลุ่ม <b>{currentGroupName}</b> เท่านั้น (เฉพาะกลุ่มนี้)
+                      </p>
+                    </div>
+
+                    {/* Preview link ที่จะส่ง หรือ ช่องให้ใส่ลิงก์กลุ่มโดยตรง */}
                     {groupCanvaInfo?.link ? (
-                      <div className="p-3 bg-green-50 border border-green-200 rounded-xl">
-                        <p className="text-xs font-semibold text-green-700 mb-1">🔗 ลิงก์ที่จะส่ง (ลิงก์ Canva ของกลุ่ม)</p>
-                        <p className="text-xs text-gray-600 truncate">{groupCanvaInfo.link}</p>
+                      <div className="p-3.5 bg-emerald-50 border-2 border-emerald-300 rounded-2xl space-y-2">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="font-bold text-emerald-800 flex items-center gap-1">
+                            <CheckCircle size={14} className="text-emerald-600"/> ลิงก์ Canva ของกลุ่มที่จะส่ง:
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => { setNewCanvaLink(groupCanvaInfo.link); setShowSetLink(true); }}
+                            className="text-[11px] text-primary hover:underline font-semibold"
+                          >
+                            แก้ไขลิงก์ ✏️
+                          </button>
+                        </div>
+                        <p className="text-xs text-gray-700 truncate font-mono bg-white p-2.5 rounded-xl border border-emerald-200">
+                          {groupCanvaInfo.link}
+                        </p>
+                        <div className="flex items-center justify-between text-[11px] text-gray-500 pt-0.5">
+                          <span>กลุ่ม: <b className="text-primary">{currentGroupName}</b></span>
+                          <a 
+                            href={groupCanvaInfo.link} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-[#7C5CBF] font-bold hover:underline flex items-center gap-0.5"
+                          >
+                            ลองเปิดดู <ExternalLink size={10}/>
+                          </a>
+                        </div>
                       </div>
                     ) : (
-                      <div className="p-3 bg-orange-50 border border-orange-200 rounded-xl text-sm text-orange-700">
-                        ⚠️ ยังไม่มีลิงก์ Canva ของกลุ่ม — กรุณาตั้งลิงก์ก่อน
+                      <div className="p-3.5 bg-purple-50 border-2 border-purple-300 rounded-2xl space-y-2.5">
+                        <div className="flex items-center gap-1.5 text-xs font-bold text-purple-900">
+                          <span>⚠️</span> <span>กลุ่ม {currentGroupName} ยังไม่ได้เพิ่มลิงก์ Canva</span>
+                        </div>
+                        <p className="text-[11px] text-purple-700 leading-relaxed">
+                          กรุณาวางลิงก์ Canva ของกลุ่ม <b>{currentGroupName}</b> ด้านล่าง เพื่อบันทึกเป็นลิงก์กลุ่มและส่งงาน:
+                        </p>
+                        <input
+                          className="w-full p-2.5 rounded-xl border border-purple-300 text-xs font-mono outline-none focus:ring-2 focus:ring-[#7C5CBF] bg-white"
+                          placeholder="https://www.canva.com/design/... (ลิงก์ Canva ของกลุ่ม)"
+                          value={submitCanvaLink}
+                          onChange={e => setSubmitCanvaLink(e.target.value)}
+                        />
+                        <div className="flex justify-between items-center text-[11px]">
+                          <button
+                            type="button"
+                            onClick={handleOpenCanva}
+                            className="text-[#7C5CBF] hover:underline font-semibold flex items-center gap-1"
+                          >
+                            <ExternalLink size={11}/> เปิด Canva เพื่อสร้างงาน ↗
+                          </button>
+                          <span className="text-gray-400">* ระบบจะบันทึกลิงก์นี้ให้ทั้งกลุ่มทันที</span>
+                        </div>
                       </div>
                     )}
-                    <textarea className="w-full p-3 rounded-xl border border-gray-200 focus:border-primary outline-none text-sm resize-none"
-                      rows={2} placeholder="หมายเหตุถึงครู (ไม่จำเป็น)"
-                      value={note} onChange={e => setNote(e.target.value)}/>
-                    <button onClick={handleSubmitLink}
-                      disabled={submitting || !groupCanvaInfo?.link}
-                      className="w-full btn-primary py-3 flex items-center justify-center gap-2 disabled:opacity-50">
-                      <Send size={16}/> {submitting ? 'กำลังส่ง...' : 'ส่งงาน'}
+
+                    <textarea 
+                      className="w-full p-3 rounded-xl border border-gray-200 focus:border-primary outline-none text-sm resize-none"
+                      rows={2} 
+                      placeholder="หมายเหตุถึงครู (ไม่จำเป็น)"
+                      value={note} 
+                      onChange={e => setNote(e.target.value)}
+                    />
+
+                    <button 
+                      onClick={handleSubmitLink}
+                      disabled={submitting || (!groupCanvaInfo?.link && !submitCanvaLink.trim())}
+                      className="w-full btn-primary py-3 flex items-center justify-center gap-2 disabled:opacity-50 text-sm font-bold shadow-md"
+                    >
+                      <Send size={16}/> {submitting ? 'กำลังส่งงาน...' : `ส่งงาน (ในนามกลุ่ม ${currentGroupName})`}
                     </button>
-                    {!groupCanvaInfo?.link && (
-                      <button onClick={() => setActiveTab('missions')}
-                        className="w-full py-2 text-sm text-primary underline">← ไปตั้งลิงก์ Canva ก่อน</button>
-                    )}
                   </>
                 )}
               </div>

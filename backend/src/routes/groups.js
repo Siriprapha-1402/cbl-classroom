@@ -442,12 +442,16 @@ router.get('/summary/:challengeId', (req, res) => {
       ORDER BY u.name
     `).all(g.id, req.params.challengeId, req.params.challengeId);
 
+    const groupCanva = db.prepare(`
+      SELECT canva_link FROM group_canva_links WHERE group_id = ? AND challenge_id = ?
+    `).get(g.id, req.params.challengeId);
+
     const linkSubmission = db.prepare(`
       SELECT ls.canva_link, ls.submitted_at FROM link_submissions ls
       JOIN student_challenges sc ON sc.id = ls.student_challenge_id
       WHERE sc.challenge_id = ? AND sc.student_id IN (
         SELECT student_id FROM group_members WHERE group_id = ?
-      ) LIMIT 1
+      ) AND ls.canva_link IS NOT NULL AND ls.canva_link != '' LIMIT 1
     `).get(req.params.challengeId, g.id);
 
     const submitted = members.filter(m => m.submitted_at || m.canva_link);
@@ -455,7 +459,7 @@ router.get('/summary/:challengeId', (req, res) => {
 
     return {
       ...g, members,
-      canvaLink: linkSubmission?.canva_link || null,
+      canvaLink: groupCanva?.canva_link || linkSubmission?.canva_link || null,
       submittedCount: submitted.length,
       avgScore: avgScore || null,
     };
@@ -484,11 +488,23 @@ router.get('/canva-link/:challengeId', requireRole('student'), (req, res) => {
      WHERE gcl.group_id = ? AND gcl.challenge_id = ?`
   ).get(groupRow.id, req.params.challengeId);
 
+  let finalLink = linkRow?.canva_link || null;
+  if (!finalLink) {
+    const fallbackSub = db.prepare(`
+      SELECT ls.canva_link FROM link_submissions ls
+      JOIN student_challenges sc ON sc.id = ls.student_challenge_id
+      WHERE sc.challenge_id = ? AND sc.student_id IN (
+        SELECT student_id FROM group_members WHERE group_id = ?
+      ) AND ls.canva_link IS NOT NULL AND ls.canva_link != '' LIMIT 1
+    `).get(req.params.challengeId, groupRow.id);
+    finalLink = fallbackSub?.canva_link || null;
+  }
+
   res.json({
     hasGroup: true,
     groupId: groupRow.id,
     groupName: groupRow.name,
-    link: linkRow?.canva_link || null,
+    link: finalLink,
     setByName: linkRow?.set_by_name || null,
   });
 });

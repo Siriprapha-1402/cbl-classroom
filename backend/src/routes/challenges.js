@@ -221,6 +221,24 @@ router.post('/:id/submit-link', requireRole('student'), (req, res) => {
 
   db.prepare("UPDATE student_challenges SET status='submitted', submitted_at=CURRENT_TIMESTAMP, canva_link=?, is_on_time=? WHERE id=?").run(canvaLink.trim(), isOnTime, sc.id);
 
+  // บันทึกลิงก์ Canva เป็นของกลุ่มของนักเรียนด้วย
+  try {
+    const groupMember = db.prepare(`
+      SELECT gm.group_id FROM group_members gm
+      JOIN groups g ON g.id = gm.group_id
+      WHERE gm.student_id = ?
+    `).get(req.user.id);
+    if (groupMember?.group_id) {
+      db.prepare(`
+        INSERT INTO group_canva_links (group_id, challenge_id, canva_link, set_by)
+        VALUES (?, ?, ?, ?)
+        ON CONFLICT(group_id, challenge_id) DO UPDATE SET canva_link = excluded.canva_link, set_by = excluded.set_by
+      `).run(groupMember.group_id, req.params.id, canvaLink.trim(), req.user.id);
+    }
+  } catch (err) {
+    console.error('Failed to update group_canva_links on submission:', err);
+  }
+
   logActivity(req.user.id, 'SUBMIT_LINK', 'challenge', req.params.id, JSON.stringify({ canvaLink }));
   res.json({ message: 'ส่งงานสำเร็จ!' });
 });
