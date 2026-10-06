@@ -70,8 +70,8 @@ function getStore() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      // Auto-heal: if store is missing challenges, seed with initialData
-      if (!parsed.challenges || parsed.challenges.length === 0) {
+      // Auto-heal only if parsed.challenges is missing or not an array
+      if (!Array.isArray(parsed.challenges)) {
         parsed.challenges = initialData.challenges || [];
         parsed.missions = (parsed.missions && parsed.missions.length > 0) ? parsed.missions : (initialData.missions || []);
         parsed.checklist_items = (parsed.checklist_items && parsed.checklist_items.length > 0) ? parsed.checklist_items : (initialData.checklist_items || []);
@@ -462,11 +462,31 @@ export async function handleMockRequest(config) {
       return { status: 200, data: { message: 'อัปเดตกิจกรรมสำเร็จ', challenge: c, challengeId: c.id } };
     }
     if (method === 'delete') {
-      store.challenges = store.challenges.filter(c => c.id !== cid);
-      store.missions = store.missions.filter(m => m.challenge_id !== cid);
-      store.checklist_items = store.checklist_items.filter(cl => cl.challenge_id !== cid);
+      store.challenges = (store.challenges || []).filter(c => c.id !== cid);
+      store.missions = (store.missions || []).filter(m => m.challenge_id !== cid);
+      store.checklist_items = (store.checklist_items || []).filter(cl => cl.challenge_id !== cid);
+
+      // ลบข้อมูลความคืบหน้าของนักเรียนที่ผูกกับกิจกรรมนี้
+      const scIds = (store.student_challenges || []).filter(sc => sc.challenge_id === cid).map(sc => sc.id);
+      store.student_challenges = (store.student_challenges || []).filter(sc => sc.challenge_id !== cid);
+      store.submissions = (store.submissions || []).filter(sub => !scIds.includes(sub.student_challenge_id));
+      store.mission_progress = (store.mission_progress || []).filter(mp => !scIds.includes(mp.student_challenge_id));
+      store.checklist_completions = (store.checklist_completions || []).filter(cc => !scIds.includes(cc.student_challenge_id));
+
+      // ลบลิงก์ Canva ของกลุ่มที่ผูกกับกิจกรรมนี้
+      if (store.group_canva_links) {
+        Object.keys(store.group_canva_links).forEach(k => {
+          if (k.startsWith(`${cid}_`)) {
+            delete store.group_canva_links[k];
+          }
+        });
+      }
+      if (store.canva_links) {
+        delete store.canva_links[cid];
+      }
+
       saveStore(store);
-      return { status: 200, data: { ok: true } };
+      return { status: 200, data: { ok: true, message: 'ลบกิจกรรมสำเร็จ' } };
     }
   }
 

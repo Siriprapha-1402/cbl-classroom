@@ -112,6 +112,16 @@ export default function CreateChallenge() {
   const removeCheck = i => setChecklist(c => c.filter((_, idx) => idx !== i));
   const updateCheck = (i, val) => setChecklist(c => c.map((v, idx) => idx === i ? val : v));
 
+  const parseSafeDeadline = (dl) => {
+    if (!dl) return null;
+    try {
+      const d = new Date(dl);
+      return isNaN(d.getTime()) ? null : d.toISOString();
+    } catch (e) {
+      return null;
+    }
+  };
+
   // บันทึกกิจกรรม (Create หรือ Update)
   const handleSave = async (publish = false) => {
     if (!form.title.trim()) { 
@@ -134,7 +144,7 @@ export default function CreateChallenge() {
         deliverables: form.deliverables.trim(),
         status: publish ? 'active' : (form.status || 'active'),
         max_score: Number(form.max_score) || 100,
-        deadline: form.deadline ? new Date(form.deadline).toISOString() : null,
+        deadline: parseSafeDeadline(form.deadline),
         missions: missions
           .filter(m => m.title.trim())
           .map((m, i) => ({ 
@@ -154,7 +164,7 @@ export default function CreateChallenge() {
       } else {
         // สร้างกิจกรรมใหม่
         const res = await api.post('/challenges', payload);
-        targetId = res.data.challengeId || res.data.id;
+        targetId = res.data.challengeId || res.data.id || res.data.challenge?.id;
       }
 
       if (publish && targetId) {
@@ -176,10 +186,10 @@ export default function CreateChallenge() {
         window.dispatchEvent(new Event('cbl_storage_update'));
       }
 
-      setSuccessMsg(isEdit ? 'บันทึกการแก้ไขกิจกรรมเรียบร้อยแล้ว!' : 'สร้างและเผยแพร่กิจกรรมเรียบร้อยแล้ว!');
+      setSuccessMsg(isEdit ? 'บันทึกการแก้ไขกิจกรรมเรียบร้อยแล้ว!' : 'สร้างและเผยแพร่กิจกรรมเรียบร้อยแล้ว! กำลังกลับสู่หน้ารายการ...');
       setTimeout(() => {
         navigate('/teacher/challenges');
-      }, 1000);
+      }, 700);
 
     } catch (e) {
       console.error(e);

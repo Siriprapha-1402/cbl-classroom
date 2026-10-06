@@ -182,18 +182,42 @@ router.put('/:id', requireRole('teacher'), (req, res) => {
   res.json({ message: 'อัปเดต Challenge สำเร็จ', challengeId: challenge.id });
 });
 
-// DELETE /api/challenges/:id
+// DELETE /api/challenges/:id — ครูลบกิจกรรมพร้อมข้อมูลที่เกี่ยวข้องทั้งหมด
 router.delete('/:id', requireRole('teacher'), (req, res) => {
-  const challenge = db.prepare('SELECT * FROM challenges WHERE id = ? AND teacher_id = ?').get(req.params.id, req.user.id);
-  if (!challenge) return res.status(404).json({ error: 'ไม่พบ Challenge' });
-  db.prepare('DELETE FROM challenges WHERE id = ?').run(challenge.id);
-  res.json({ message: 'ลบ Challenge สำเร็จ' });
-});
+  const challenge = db.prepare('SELECT * FROM challenges WHERE id = ?').get(req.params.id);
+  if (!challenge) return res.status(404).json({ error: 'ไม่พบกิจกรรมที่ต้องการลบ' });
 
-// POST /api/challenges/:id/publish
-router.post('/:id/publish', requireRole('teacher'), (req, res) => {
-  db.prepare("UPDATE challenges SET status = 'active' WHERE id = ? AND teacher_id = ?").run(req.params.id, req.user.id);
-  res.json({ message: 'เผยแพร่ Challenge สำเร็จ' });
+  try {
+    // 1. ดึง student_challenge_id ทั้งหมดเพื่อลบตารางลูกที่เกี่ยวข้อง
+    const scRows = db.prepare('SELECT id FROM student_challenges WHERE challenge_id = ?').all(challenge.id);
+    const scIds = scRows.map(r => r.id);
+
+    if (scIds.length > 0) {
+      const placeholders = scIds.map(() => '?').join(',');
+      db.prepare(`DELETE FROM link_submissions WHERE student_challenge_id IN (${placeholders})`).run(...scIds);
+      db.prepare(`DELETE FROM scores WHERE student_challenge_id IN (${placeholders})`).run(...scIds);
+      db.prepare(`DELETE FROM feedback WHERE student_challenge_id IN (${placeholders})`).run(...scIds);
+      db.prepare(`DELETE FROM mission_progress WHERE student_challenge_id IN (${placeholders})`).run(...scIds);
+      db.prepare(`DELETE FROM checklist_completions WHERE student_challenge_id IN (${placeholders})`).run(...scIds);
+      db.prepare('DELETE FROM student_challenges WHERE challenge_id = ?').run(challenge.id);
+    }
+
+    // 2. ลบตารางที่ผูกกับ challenge โดยตรง
+    db.prepare('DELETE FROM missions WHERE challenge_id = ?').run(challenge.id);
+    db.prepare('DELETE FROM checklist_items WHERE challenge_id = ?').run(challenge.id);
+    db.prepare('DELETE FROM group_canva_links WHERE challenge_id = ?').run(challenge.id);
+    db.prepare('DELETE FROM challenge_activity WHERE challenge_id = ?').run(challenge.id);
+    db.prepare('DELETE FROM challenge_files WHERE challenge_id = ?').run(challenge.id);
+
+    // 3. ลบกิจกรรมหลัก
+    db.prepare('DELETE FROM challenges WHERE id = ?').run(challenge.id);
+
+    logActivity(req.user.id, 'DELETE_CHALLENGE', 'challenge', challenge.id, JSON.stringify({ title: challenge.title }));
+    res.json({ message: 'ลบกิจกรรมสำเร็จ', deletedId: challenge.id });
+  } catch (err) {
+    console.error('Delete challenge error:', err);
+    res.status(500).json({ error: 'ไม่สามารถลบกิจกรรมได้: ' + err.message });
+  }
 });
 
 // POST /api/challenges/:id/submit-link — นักเรียนส่งลิงก์ Canva
