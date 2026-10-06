@@ -8,10 +8,20 @@ export default function Home() {
   const { user } = useAuthStore();
   const navigate = useNavigate();
   const [challenges, setChallenges] = useState([]);
+  const [myGroup, setMyGroup] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get('/challenges').then(r => setChallenges(r.data.challenges || [])).catch(console.error).finally(() => setLoading(false));
+    Promise.all([
+      api.get('/challenges').catch(() => ({ data: { challenges: [] } })),
+      api.get('/groups').catch(() => ({ data: { myGroup: null } }))
+    ])
+      .then(([cRes, gRes]) => {
+        setChallenges(cRes.data.challenges || []);
+        setMyGroup(gRes.data.myGroup || null);
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
   }, []);
 
   if (loading) return <div className="flex justify-center items-center h-64"><div className="animate-spin rounded-full h-10 w-10 border-4 border-primary border-t-transparent"/></div>;
@@ -25,10 +35,24 @@ export default function Home() {
   return (
     <div className="max-w-2xl mx-auto space-y-5">
       {/* Welcome */}
-      <div className="bg-gradient-to-r from-primary to-primary-light rounded-2xl p-6 text-white">
+      <div className="bg-gradient-to-r from-primary to-primary-light rounded-2xl p-6 text-white shadow-md">
         <p className="text-white/70 text-sm mb-1">ยินดีต้อนรับ 👋</p>
         <h1 className="text-xl font-bold">{user?.name}</h1>
-        <p className="text-white/60 text-sm mt-1">{user?.student_id || user?.username} · ปวช.1/1</p>
+        <div className="flex flex-wrap items-center gap-2 mt-2">
+          <span className="text-white/80 text-sm">{user?.student_id || user?.username} · ปวช.1/1</span>
+          {myGroup ? (
+            <span className="inline-flex items-center gap-1 bg-white/20 text-white px-2.5 py-0.5 rounded-full text-xs font-semibold backdrop-blur-xs">
+              👥 {myGroup.name} (อยู่ในกลุ่มแล้ว ✅)
+            </span>
+          ) : (
+            <button 
+              onClick={() => navigate('/student/groups')}
+              className="inline-flex items-center gap-1 bg-amber-400/90 text-amber-950 px-2.5 py-0.5 rounded-full text-xs font-bold hover:bg-amber-300 transition"
+            >
+              ⚠️ ยังไม่มีกลุ่ม — คลิกเข้ากลุ่ม
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Challenges */}

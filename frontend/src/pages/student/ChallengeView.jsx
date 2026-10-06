@@ -69,15 +69,19 @@ export default function ChallengeView() {
     loadGroupCanva();
   }, [load, loadGroupCanva]);
 
-  // Heartbeat
+  // Heartbeat — ping real-time active working status every 10 seconds
   useEffect(() => {
-    if (!data?.studentProgress) return;
-    const sc = data.studentProgress;
-    const ping = () => api.post('/groups/heartbeat', { challengeId: id, studentChallengeId: sc.id }).catch(() => {});
+    if (!id) return;
+    const ping = () => {
+      api.post('/groups/heartbeat', { 
+        challengeId: Number(id), 
+        studentChallengeId: data?.studentProgress?.id || null 
+      }).catch(() => {});
+    };
     ping();
-    heartbeatRef.current = setInterval(ping, 30000);
+    heartbeatRef.current = setInterval(ping, 10000);
     return () => clearInterval(heartbeatRef.current);
-  }, [data?.studentProgress?.id]);
+  }, [id, data?.studentProgress?.id]);
 
   const handleStart = async () => {
     setStarting(true);
@@ -133,7 +137,7 @@ export default function ChallengeView() {
     navigate(`/student/challenges/${id}/summary`);
   };
 
-  if (loading) return <div className="flex justify-center items-center h-64"><div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"/></div>;
+  if (loading) return <div className="flex justify-center items-center h-64"><div className="animate-spin rounded-full h-10 w-10 border-4 border-primary border-t-transparent"/></div>;
   if (!data) return <div className="card text-center py-12 text-gray-400">ไม่พบกิจกรรม</div>;
 
   const { challenge, missions = [], checklistItems = [], studentProgress: sc } = data;
@@ -153,6 +157,11 @@ export default function ChallengeView() {
     { id: 'submit', label: isSubmitted ? '✅ ส่งแล้ว' : '📤 ส่งงาน' },
   ];
 
+  // Group status computation
+  const hasGroup = !!(myGroup || groupCanvaInfo?.hasGroup);
+  const currentGroupName = myGroup?.name || groupCanvaInfo?.groupName || 'กลุ่มของฉัน';
+  const currentGroupMembers = myGroup?.members || groupCanvaInfo?.members || [];
+
   return (
     <div className="max-w-2xl mx-auto space-y-4">
 
@@ -161,21 +170,78 @@ export default function ChallengeView() {
         <button onClick={() => navigate('/student/home')} className="p-2 rounded-xl hover:bg-gray-100 text-gray-400 flex-shrink-0"><ArrowLeft size={18}/></button>
         <div className="flex-1 min-w-0">
           <h1 className="text-lg font-bold text-gray-900 leading-tight">{challenge.title}</h1>
-          {myGroup && (
-            <span className="inline-flex items-center gap-1 text-xs text-primary bg-primary/10 px-2 py-0.5 rounded-full mt-1">
-              <Users size={11}/> {myGroup.name} ({(myGroup.members||[]).length} คน)
+          {hasGroup && (
+            <span className="inline-flex items-center gap-1.5 text-xs text-primary bg-primary/10 px-2.5 py-0.5 rounded-full mt-1 font-semibold">
+              <Users size={12}/> {currentGroupName} ({currentGroupMembers.length} คน)
+              <span className="text-[10px] bg-emerald-500 text-white px-1.5 py-0.2 rounded-full">อยู่ในกลุ่มแล้ว ✅</span>
             </span>
           )}
         </div>
         <Timer deadline={challenge.deadline}/>
       </div>
 
+      {/* Prominent Group Card */}
+      {hasGroup ? (
+        <div className="bg-gradient-to-r from-primary/10 via-accent/10 to-primary/5 border-2 border-primary/30 rounded-2xl p-4 shadow-xs">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-primary text-white flex items-center justify-center font-bold">
+                <Users size={16}/>
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-bold text-gray-800 text-sm">{currentGroupName}</h3>
+                  <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[11px] font-bold rounded-full">
+                    อยู่ในกลุ่มแล้ว ✅
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500">
+                  สมาชิกในกลุ่ม {currentGroupMembers.length} คน {myGroup?.leader_id && '· 👑 มีหัวหน้ากลุ่ม'}
+                </p>
+              </div>
+            </div>
+            <button 
+              onClick={() => navigate('/student/groups')}
+              className="text-xs text-primary hover:underline font-semibold"
+            >
+              ดูสมาชิกกลุ่ม →
+            </button>
+          </div>
+
+          {currentGroupMembers.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-3 pt-2.5 border-t border-primary/10">
+              {currentGroupMembers.map(m => (
+                <span key={m.id} className="text-xs bg-white/95 border border-primary/20 px-2.5 py-1 rounded-full text-gray-700 font-medium flex items-center gap-1 shadow-xs">
+                  <span className="w-4 h-4 rounded-full bg-primary/20 text-primary text-[10px] font-bold flex items-center justify-center">
+                    {m.name?.charAt(0)}
+                  </span>
+                  {m.name} {myGroup?.leader_id === m.id && <Crown size={11} className="text-amber-500"/>}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+          <div>
+            <p className="text-sm font-bold text-amber-800">⚠️ คุณยังไม่ได้อยู่ในกลุ่ม</p>
+            <p className="text-xs text-amber-600 mt-0.5">กรุณาเลือกหรือสร้างกลุ่มก่อน เพื่อทำงานและส่งผลงานร่วมกับเพื่อน</p>
+          </div>
+          <button 
+            onClick={() => navigate('/student/groups')}
+            className="btn-primary text-xs px-4 py-2 rounded-xl whitespace-nowrap"
+          >
+            ไปที่หน้าจัดกลุ่ม →
+          </button>
+        </div>
+      )}
+
       {/* Start Banner */}
       {!isStarted && (
         <div className="card bg-gradient-to-br from-primary/5 to-accent/5 border-2 border-primary/20 text-center py-8">
           <p className="text-5xl mb-3">🚀</p>
           <h2 className="text-xl font-bold text-gray-800 mb-2">พร้อมเริ่มแล้วหรือยัง?</h2>
-          {!myGroup && (
+          {!hasGroup && (
             <p className="text-orange-500 text-sm mb-3">
               ⚠️ แนะนำให้เข้ากลุ่มก่อน —{' '}
               <button className="underline font-semibold" onClick={() => navigate('/student/groups')}>คลิกที่นี่</button>
@@ -200,7 +266,7 @@ export default function ChallengeView() {
         <div className="card space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="font-bold text-gray-800 flex items-center gap-2">
-              <span className="text-lg">🎨</span> Canva ของกลุ่ม
+              <span className="text-lg">🎨</span> Canva ของกลุ่ม {hasGroup && <span className="text-primary text-sm font-semibold">({currentGroupName})</span>}
             </h3>
             {groupCanvaInfo?.link && (
               <button onClick={() => { setNewCanvaLink(groupCanvaInfo.link); setShowSetLink(true); }}
@@ -210,22 +276,48 @@ export default function ChallengeView() {
             )}
           </div>
 
+          {/* ลิงก์กลุ่มมีแล้ว */}
+          {groupCanvaInfo?.link && !showSetLink && (
+            <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-emerald-800 flex items-center gap-1.5">
+                  <CheckCircle size={14}/> เชื่อมต่อลิงก์ Canva กลุ่มแล้ว
+                </span>
+                <span className="text-[11px] text-emerald-600">พร้อมทำงานร่วมกัน</span>
+              </div>
+              <p className="text-xs text-gray-600 truncate font-mono bg-white p-2 rounded-lg border border-emerald-100">
+                {groupCanvaInfo.link}
+              </p>
+              <button onClick={handleOpenCanva}
+                className="w-full py-2.5 bg-gradient-to-r from-[#7C5CBF] to-[#00C4CC] text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow hover:shadow-md transition-all">
+                <ExternalLink size={15}/> 🚀 เปิด Canva ของกลุ่ม
+              </button>
+            </div>
+          )}
+
           {/* ถ้ายังไม่มีลิงก์กลุ่ม */}
           {!groupCanvaInfo?.link && !showSetLink && (
             <div className="space-y-2">
-              {!groupCanvaInfo?.hasGroup && (
-                <p className="text-xs text-orange-500 bg-orange-50 p-2 rounded-lg">⚠️ คุณยังไม่ได้อยู่ในกลุ่ม — <button className="underline" onClick={() => navigate('/student/groups')}>เข้ากลุ่มก่อน</button></p>
+              {!hasGroup && (
+                <p className="text-xs text-orange-500 bg-orange-50 p-2.5 rounded-xl border border-orange-200">
+                  ⚠️ คุณยังไม่ได้อยู่ในกลุ่ม — <button className="underline font-bold" onClick={() => navigate('/student/groups')}>เข้ากลุ่มก่อน</button>
+                </p>
+              )}
+              {hasGroup && (
+                <p className="text-xs text-emerald-700 bg-emerald-50 p-2 rounded-xl border border-emerald-100 flex items-center gap-1.5">
+                  <span>✅</span> <span>คุณอยู่ใน <b>{currentGroupName}</b> เรียบร้อยแล้ว</span>
+                </p>
               )}
               <p className="text-sm text-gray-500">
-                {groupCanvaInfo?.hasGroup
-                  ? `กลุ่ม "${groupCanvaInfo.groupName}" ยังไม่มีลิงก์ Canva — เปิด Canva แล้ววาง Share Link มาที่นี่`
+                {hasGroup
+                  ? `กลุ่ม "${currentGroupName}" ยังไม่มีลิงก์ Canva — เปิด Canva สร้าง Slide แล้วนำ Share Link มาวางที่นี่เพื่อทำงานร่วมกัน`
                   : 'เปิด Canva สร้าง Slide แล้วแชร์ลิงก์ให้คนในกลุ่ม'}
               </p>
               <button onClick={handleOpenCanva}
                 className="w-full py-3 bg-gradient-to-r from-[#7C5CBF] to-[#00C4CC] text-white rounded-2xl font-bold flex items-center justify-center gap-2 shadow hover:shadow-lg transition-all">
-                <ExternalLink size={17}/> เปิด Canva
+                <ExternalLink size={17}/> เปิด Canva เพื่อเริ่มสร้างงาน
               </button>
-              {groupCanvaInfo?.hasGroup && (
+              {hasGroup && (
                 <button onClick={() => setShowSetLink(true)}
                   className="w-full py-2.5 border-2 border-dashed border-[#7C5CBF]/40 text-[#7C5CBF] rounded-xl text-sm font-semibold hover:bg-[#7C5CBF]/5">
                   <Link2 size={14} className="inline mr-1"/> วาง Canva Share Link ของกลุ่ม

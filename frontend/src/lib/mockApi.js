@@ -884,26 +884,182 @@ export async function handleMockRequest(config) {
     return { status: 200, data: { ok: true, groups: newGroups } };
   }
 
+  // Group Canva Link
   const canvaLinkMatch = url.match(/^\/groups\/canva-link\/(\d+)$/);
   if (canvaLinkMatch) {
-    const cid = canvaLinkMatch[1];
+    const cid = Number(canvaLinkMatch[1]);
+    const currentUser = getCurrentUser(store);
+    const myGrp = (store.groups || []).find(g => 
+      g.members?.some(m => m.id === currentUser?.id || m.student_code === currentUser?.username || m.student_code === currentUser?.student_id)
+    );
+    const hasGroup = !!myGrp;
+    const link = store.canva_links?.[cid] || '';
+
     if (method === 'get') {
-      return { status: 200, data: { canvaLink: store.canva_links?.[cid] || '' } };
+      return { 
+        status: 200, 
+        data: { 
+          hasGroup,
+          groupId: myGrp?.id || null,
+          groupName: myGrp?.name || null,
+          link,
+          canvaLink: link,
+          members: myGrp?.members || []
+        } 
+      };
     }
     if (method === 'post') {
       store.canva_links = store.canva_links || {};
       store.canva_links[cid] = body.canvaLink || '';
       saveStore(store);
-      return { status: 200, data: { ok: true, canvaLink: store.canva_links[cid] } };
+      return { 
+        status: 200, 
+        data: { 
+          ok: true, 
+          hasGroup,
+          groupName: myGrp?.name || null,
+          link: store.canva_links[cid],
+          canvaLink: store.canva_links[cid]
+        } 
+      };
     }
   }
 
-  if (url.match(/^\/groups\/activity\//) || url.match(/^\/groups\/summary\//)) {
-    return { status: 200, data: { summary: {}, activities: [] } };
+  // Heartbeat - Real-time active tracking
+  if (url === '/groups/heartbeat' && method === 'post') {
+    const currentUser = getCurrentUser(store);
+    const cid = Number(body.challengeId);
+    if (currentUser && cid) {
+      store.challenge_activity = store.challenge_activity || {};
+      store.challenge_activity[currentUser.id] = {
+        studentId: currentUser.id,
+        challengeId: cid,
+        lastSeen: Date.now()
+      };
+      saveStore(store);
+    }
+    return { status: 200, data: { ok: true } };
   }
 
-  if (url === '/groups/heartbeat') {
-    return { status: 200, data: { ok: true } };
+  // Real-time Activity Tracker - Who is working or not working
+  const activityMatch = url.match(/^\/groups\/activity\/(\d+)$/);
+  if (activityMatch && method === 'get') {
+    const cid = Number(activityMatch[1]);
+    const students = (store.users || []).filter(u => u.role === 'student');
+    store.challenge_activity = store.challenge_activity || {};
+
+    let activeCount = 0;
+    let inProgressCount = 0;
+    let notStartedCount = 0;
+    let submittedCount = 0;
+
+    const studentList = students.map(s => {
+      // Find group
+      const grp = (store.groups || []).find(g => 
+        g.members?.some(m => m.id === s.id || m.student_code === s.username || m.student_code === s.student_id)
+      );
+
+      // Find challenge progress
+      const sc = (store.student_challenges || []).find(scItem => scItem.student_id === s.id && scItem.challenge_id === cid);
+      const isSubmitted = sc?.status === 'submitted' || sc?.status === 'graded' || !!sc?.canva_link;
+      const isInProgress = sc?.status === 'in_progress';
+
+      // Check real-time heartbeat (within last 5 minutes)
+      const act = store.challenge_activity[s.id];
+      const isRecentlyActive = act && act.challengeId === cid && (Date.now() - act.lastSeen < 5 * 60 * 1000);
+
+      let workingStatus = 'not_started';
+      let statusLabel = 'ยังไม่เริ่มทำ';
+
+      if (isSubmitted) {
+        workingStatus = 'submitted';
+        statusLabel = 'ส่งงานแล้ว';
+        submittedCount++;
+      } else if (isRecentlyActive) {
+        workingStatus = 'active';
+        statusLabel = 'กำลังทำงานอยู่';
+        activeCount++;
+      } else if (isInProgress) {
+        workingStatus = 'in_progress';
+        statusLabel = 'ทำค้างไว้';
+        inProgressCount++;
+      } else {
+        workingStatus = 'not_started';
+        statusLabel = 'ยังไม่เริ่มทำ';
+        notStartedCount++;
+      }
+
+      return {
+        id: s.id,
+        name: s.name,
+        username: s.username,
+        studentCode: s.student_id || s.username,
+        groupId: grp?.id || null,
+        groupName: grp?.name || 'ยังไม่มีกลุ่ม',
+        workingStatus,
+        statusLabel,
+        isActiveNow: isRecentlyActive,
+        lastSeen: act?.lastSeen ? new Date(act.lastSeen).toISOString() : null,
+        canvaLink: sc?.canva_link || null,
+        submittedAt: sc?.submitted_at || null,
+        isOnTime: sc?.is_on_time ?? 1
+      };
+    });
+
+    const byGroupMap = {};
+    studentList.forEach(s => {
+      const key = s.groupId || 'nogroup';
+      if (!byGroupMap[key]) {
+        byGroupMap[key] = {
+          groupId: s.groupId,
+          groupName: s.groupName,
+          activeCount: 0,
+          totalCount: 0,
+          members: []
+        };
+      }
+      byGroupMap[key].members.push(s);
+      byGroupMap[key].totalCount++;
+      if (s.isActiveNow) byGroupMap[key].activeCount++;
+    });
+
+    return {
+      status: 200,
+      data: {
+        activeCount,
+        inProgressCount,
+        notStartedCount,
+        submittedCount,
+        totalCount: studentList.length,
+        students: studentList,
+        byGroup: Object.values(byGroupMap)
+      }
+    };
+  }
+
+  // Summary per group
+  const summaryMatch = url.match(/^\/groups\/summary\/(\d+)$/);
+  if (summaryMatch) {
+    const cid = Number(summaryMatch[1]);
+    const groups = (store.groups || []).map(g => {
+      const mems = (g.members || []).map(m => {
+        const sc = (store.student_challenges || []).find(s => s.student_id === m.id && s.challenge_id === cid);
+        return {
+          ...m,
+          status: sc ? sc.status : 'not_started',
+          submitted_at: sc?.submitted_at || null,
+          canva_link: sc?.canva_link || null,
+          score: sc?.score ?? null
+        };
+      });
+      return {
+        ...g,
+        members: mems,
+        canvaLink: store.canva_links?.[cid] || null,
+        submittedCount: mems.filter(m => m.submitted_at || m.canva_link).length
+      };
+    });
+    return { status: 200, data: { groups } };
   }
 
   // 9. Research Assessments

@@ -8,6 +8,7 @@ export default function Dashboard() {
   const [challenges, setChallenges] = useState([]);
   const [summary, setSummary] = useState({});
   const [totalStudents, setTotalStudents] = useState(43);
+  const [liveActivity, setLiveActivity] = useState({ activeCount: 0, inProgressCount: 0, notStartedCount: 0, submittedCount: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -16,7 +17,7 @@ export default function Dashboard() {
       api.get('/analytics/class').catch(() => ({ data: {} })),
       api.get('/students').catch(() => ({ data: { students: [] } }))
     ])
-      .then(([cRes, aRes, sRes]) => {
+      .then(async ([cRes, aRes, sRes]) => {
         const cList = cRes.data?.challenges || [];
         const sList = sRes.data?.students || [];
         const aData = aRes.data || {};
@@ -33,6 +34,12 @@ export default function Dashboard() {
           late: aSummary.late || 0,
           notStarted: aSummary.notStarted !== undefined ? aSummary.notStarted : (cList.length > 0 ? Math.max(0, studentCount * cList.length - (aSummary.submitted || 0)) : 0),
         });
+
+        // Load live activity if there's any challenge
+        if (cList.length > 0) {
+          const actRes = await api.get(`/groups/activity/${cList[0].id}`).catch(() => null);
+          if (actRes?.data) setLiveActivity(actRes.data);
+        }
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -70,6 +77,46 @@ export default function Dashboard() {
           </div>
         ))}
       </div>
+
+      {/* Real-time Live Activity Widget */}
+      {challenges.length > 0 && (
+        <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm space-y-3">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-gray-100 pb-3">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"/>
+              <h2 className="font-bold text-gray-800 text-sm">การทำงานของนักเรียนแบบเรียลไทม์ (Live Activity)</h2>
+              <span className="text-[10px] font-bold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">
+                ตรวจเช็คสด 🟢
+              </span>
+            </div>
+            <button 
+              onClick={() => navigate('/teacher/submissions')}
+              className="text-xs text-primary font-bold hover:underline"
+            >
+              ดูรายชื่อและตรวจผลงานทั้งหมด →
+            </button>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="p-3 bg-emerald-50/70 rounded-xl border border-emerald-200">
+              <p className="text-[11px] font-bold text-emerald-800">🟢 กำลังทำงานตอนนี้</p>
+              <p className="text-2xl font-black text-emerald-700 mt-1">{liveActivity.activeCount || 0} <span className="text-xs font-normal">คน</span></p>
+            </div>
+            <div className="p-3 bg-rose-50/70 rounded-xl border border-rose-200">
+              <p className="text-[11px] font-bold text-rose-800">⚪ ยังไม่เริ่มทำ</p>
+              <p className="text-2xl font-black text-rose-700 mt-1">{liveActivity.notStartedCount || Math.max(0, totalStudents - (summary.submitted || 0))} <span className="text-xs font-normal">คน</span></p>
+            </div>
+            <div className="p-3 bg-amber-50/70 rounded-xl border border-amber-200">
+              <p className="text-[11px] font-bold text-amber-800">🟡 ทำค้างไว้</p>
+              <p className="text-2xl font-black text-amber-700 mt-1">{liveActivity.inProgressCount || 0} <span className="text-xs font-normal">คน</span></p>
+            </div>
+            <div className="p-3 bg-blue-50/70 rounded-xl border border-blue-200">
+              <p className="text-[11px] font-bold text-blue-800">✅ ส่งงานแล้ว</p>
+              <p className="text-2xl font-black text-blue-700 mt-1">{summary.submitted || 0} <span className="text-xs font-normal">คน</span></p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Challenge List */}
       <div className="card">

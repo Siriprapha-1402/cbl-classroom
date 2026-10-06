@@ -269,34 +269,112 @@ router.delete('/:id', requireRole('teacher'), (req, res) => {
   res.json({ message: 'ลบกลุ่มสำเร็จ' });
 });
 
-// GET /api/groups/activity/:challengeId — ดู real-time ว่าใครกำลังทำงาน
+// GET /api/groups/activity/:challengeId — ดู real-time ว่าใครกำลังทำงานหรือยังไม่ทำ
 router.get('/activity/:challengeId', (req, res) => {
-  const active = db.prepare(`
-    SELECT ca.*, u.name as student_name, u.username,
-      g.name as group_name
-    FROM challenge_activity ca
-    JOIN users u ON u.id = ca.student_id
-    LEFT JOIN groups g ON g.id = ca.group_id
-    WHERE ca.challenge_id = ? AND ca.is_active = 1
-      AND ca.last_seen > datetime('now', '-5 minutes')
-    ORDER BY ca.group_id, ca.joined_at
-  `).all(req.params.challengeId);
+  const challengeId = req.params.challengeId;
+  const classId = getClassId(req.user);
+  if (!classId) return res.json({ activeCount: 0, inProgressCount: 0, notStartedCount: 0, submittedCount: 0, totalCount: 0, students: [], byGroup: [] });
 
-  // จัดกลุ่ม
-  const byGroup = {};
-  active.forEach(a => {
-    const key = a.group_id || 'nogroup';
-    if (!byGroup[key]) byGroup[key] = { groupId: a.group_id, groupName: a.group_name || 'ไม่มีกลุ่ม', members: [] };
-    byGroup[key].members.push(a);
+  // ดึงนักเรียนทั้งหมดในห้องนี้ พร้อมสถานะการทำ challenge และกิจกรรมล่าสุด
+  const allStudents = db.prepare(`
+    SELECT u.id, u.name, u.username, u.student_id as student_code,
+      g.id as group_id, g.name as group_name,
+      sc.id as student_challenge_id, sc.status as challenge_status, sc.submitted_at, sc.is_on_time, sc.canva_link,
+      ca.last_seen, ca.joined_at,
+      CASE 
+        WHEN ca.last_seen IS NOT NULL AND ca.last_seen > datetime('now', '-5 minutes') THEN 1 
+        ELSE 0 
+      END as is_active_now
+    FROM users u
+    JOIN class_enrollments ce ON ce.student_id = u.id AND ce.class_id = ?
+    LEFT JOIN group_members gm ON gm.student_id = u.id AND gm.group_id IN (SELECT id FROM groups WHERE class_id = ?)
+    LEFT JOIN groups g ON g.id = gm.group_id
+    LEFT JOIN student_challenges sc ON sc.student_id = u.id AND sc.challenge_id = ?
+    LEFT JOIN challenge_activity ca ON ca.student_id = u.id AND ca.challenge_id = ?
+    WHERE u.role = 'student'
+    ORDER BY u.name
+  `).all(classId, classId, challengeId, challengeId);
+
+  let activeCount = 0;
+  let inProgressCount = 0;
+  let notStartedCount = 0;
+  let submittedCount = 0;
+
+  const students = allStudents.map(s => {
+    let workingStatus = 'not_started';
+    let statusLabel = 'ยังไม่เริ่มทำ';
+
+    if (s.submitted_at || s.canva_link || s.challenge_status === 'submitted' || s.challenge_status === 'graded') {
+      workingStatus = 'submitted';
+      statusLabel = 'ส่งงานแล้ว';
+      submittedCount++;
+    } else if (s.is_active_now === 1) {
+      workingStatus = 'active';
+      statusLabel = 'กำลังทำงานอยู่';
+      activeCount++;
+    } else if (s.challenge_status === 'in_progress' || s.student_challenge_id) {
+      workingStatus = 'in_progress';
+      statusLabel = 'ทำค้างไว้';
+      inProgressCount++;
+    } else {
+      workingStatus = 'not_started';
+      statusLabel = 'ยังไม่เริ่มทำ';
+      notStartedCount++;
+    }
+
+    return {
+      id: s.id,
+      name: s.name,
+      username: s.username,
+      studentCode: s.student_code || s.username,
+      groupId: s.group_id || null,
+      groupName: s.group_name || 'ยังไม่มีกลุ่ม',
+      workingStatus,
+      statusLabel,
+      isActiveNow: s.is_active_now === 1,
+      lastSeen: s.last_seen || null,
+      canvaLink: s.canva_link || null,
+      submittedAt: s.submitted_at || null,
+      isOnTime: s.is_on_time
+    };
   });
 
-  res.json({ activeCount: active.length, byGroup: Object.values(byGroup) });
+  const byGroupMap = {};
+  students.forEach(s => {
+    const key = s.groupId || 'nogroup';
+    if (!byGroupMap[key]) {
+      byGroupMap[key] = {
+        groupId: s.groupId,
+        groupName: s.groupName,
+        activeCount: 0,
+        totalCount: 0,
+        members: []
+      };
+    }
+    byGroupMap[key].members.push(s);
+    byGroupMap[key].totalCount++;
+    if (s.isActiveNow) byGroupMap[key].activeCount++;
+  });
+
+  res.json({
+    activeCount,
+    inProgressCount,
+    notStartedCount,
+    submittedCount,
+    totalCount: students.length,
+    students,
+    byGroup: Object.values(byGroupMap)
+  });
 });
 
 // POST /api/groups/heartbeat — นักเรียน ping ว่ากำลังทำงานอยู่
 router.post('/heartbeat', requireRole('student'), (req, res) => {
   const { challengeId, studentChallengeId } = req.body;
-  const safe = v => v || null;
+  let scId = Number(studentChallengeId) || 0;
+  if (!scId) {
+    const scRow = db.prepare('SELECT id FROM student_challenges WHERE student_id = ? AND challenge_id = ?').get(req.user.id, challengeId);
+    scId = scRow?.id || 0;
+  }
 
   const classId = getClassId(req.user);
   const groupRow = classId ? db.prepare(`
@@ -306,10 +384,10 @@ router.post('/heartbeat', requireRole('student'), (req, res) => {
 
   const existing = db.prepare('SELECT id FROM challenge_activity WHERE student_id = ? AND challenge_id = ?').get(req.user.id, challengeId);
   if (existing) {
-    db.prepare("UPDATE challenge_activity SET last_seen = datetime('now'), is_active = 1 WHERE id = ?").run(existing.id);
+    db.prepare("UPDATE challenge_activity SET last_seen = datetime('now'), is_active = 1, group_id = ? WHERE id = ?").run(groupRow?.id || null, existing.id);
   } else {
-    db.prepare('INSERT INTO challenge_activity (student_challenge_id, student_id, challenge_id, group_id) VALUES (?, ?, ?, ?)').run(
-      safe(studentChallengeId), req.user.id, challengeId, groupRow?.id || null
+    db.prepare('INSERT INTO challenge_activity (student_challenge_id, student_id, challenge_id, group_id, is_active, joined_at, last_seen) VALUES (?, ?, ?, ?, 1, datetime(\'now\'), datetime(\'now\'))').run(
+      scId, req.user.id, challengeId, groupRow?.id || null
     );
   }
   res.json({ ok: true });
