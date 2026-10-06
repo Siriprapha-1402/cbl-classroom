@@ -310,26 +310,44 @@ export default function ChallengeView() {
             )}
           </div>
 
-          {/* ลิงก์กลุ่มมีแล้ว */}
+          {/* 1. กรณีมีลิงก์กลุ่มแล้ว — รวมเหลืออันเดียว สวยงาม ครบถ้วน */}
           {groupCanvaInfo?.link && !showSetLink && (
-            <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200 space-y-2">
+            <div className="p-4 bg-gradient-to-br from-emerald-50/80 to-teal-50/50 rounded-2xl border border-emerald-200 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-emerald-800 flex items-center gap-1.5">
-                  <CheckCircle size={14}/> เชื่อมต่อลิงก์ Canva กลุ่มแล้ว
+                  <CheckCircle size={15} className="text-emerald-600"/> เชื่อมต่อลิงก์ Canva กลุ่มแล้ว
                 </span>
-                <span className="text-[11px] text-emerald-600">พร้อมทำงานร่วมกัน</span>
+                <span className="text-[11px] font-semibold text-emerald-600 bg-emerald-100/80 px-2 py-0.5 rounded-full">
+                  พร้อมทำงานร่วมกัน ✅
+                </span>
               </div>
-              <p className="text-xs text-gray-600 truncate font-mono bg-white p-2 rounded-lg border border-emerald-100">
-                {groupCanvaInfo.link}
-              </p>
-              <button onClick={handleOpenCanva}
-                className="w-full py-2.5 bg-gradient-to-r from-[#7C5CBF] to-[#00C4CC] text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow hover:shadow-md transition-all">
-                <ExternalLink size={15}/> 🚀 เปิด Canva ของกลุ่ม
+
+              <div className="flex items-center gap-2.5 p-2.5 bg-white/95 rounded-xl border border-emerald-100 shadow-xs">
+                <Link2 size={16} className="text-emerald-600 flex-shrink-0 ml-0.5"/>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-gray-700 truncate font-mono font-medium">
+                    {groupCanvaInfo.link}
+                  </p>
+                  {groupCanvaInfo.setByName && (
+                    <p className="text-[10px] text-gray-400 mt-0.5">ตั้งโดย: {groupCanvaInfo.setByName}</p>
+                  )}
+                </div>
+              </div>
+
+              <button 
+                onClick={handleOpenCanva}
+                className="w-full py-3 bg-gradient-to-r from-[#7C5CBF] to-[#00C4CC] hover:opacity-95 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all hover:scale-[1.01]"
+              >
+                <ExternalLink size={16}/> 🚀 เปิด Canva ของกลุ่ม
               </button>
+
+              <p className="text-center text-xs text-gray-500 font-medium">
+                ✅ ทุกคนในกลุ่มจะเปิด Canva เดียวกันเพื่อทำงานร่วมกัน
+              </p>
             </div>
           )}
 
-          {/* ถ้ายังไม่มีลิงก์กลุ่ม */}
+          {/* 2. ถ้ายังไม่มีลิงก์กลุ่ม */}
           {!groupCanvaInfo?.link && !showSetLink && (
             <div className="space-y-2">
               {!hasGroup && (
@@ -360,7 +378,7 @@ export default function ChallengeView() {
             </div>
           )}
 
-          {/* Form ตั้งลิงก์ */}
+          {/* 3. Form ตั้ง / เปลี่ยนลิงก์ */}
           {showSetLink && (
             <div className="space-y-2 p-3 bg-purple-50 rounded-xl border border-purple-200">
               <p className="text-xs font-semibold text-purple-700">📋 วาง Share Link จาก Canva (ลิงก์นี้จะใช้ร่วมกันทั้งกลุ่ม)</p>
@@ -381,27 +399,6 @@ export default function ChallengeView() {
                   ยกเลิก
                 </button>
               </div>
-            </div>
-          )}
-
-          {/* ถ้ามีลิงก์กลุ่มแล้ว */}
-          {groupCanvaInfo?.link && !showSetLink && (
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-xl">
-                <Link2 size={16} className="text-green-600 flex-shrink-0"/>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold text-green-700">ลิงก์ Canva ของกลุ่ม</p>
-                  <p className="text-xs text-gray-500 truncate">{groupCanvaInfo.link}</p>
-                  {groupCanvaInfo.setByName && <p className="text-xs text-gray-400">ตั้งโดย: {groupCanvaInfo.setByName}</p>}
-                </div>
-              </div>
-              <button onClick={handleOpenCanva}
-                className="w-full py-3 bg-gradient-to-r from-[#7C5CBF] to-[#00C4CC] text-white rounded-2xl font-bold flex items-center justify-center gap-2 shadow hover:shadow-lg transition-all hover:scale-[1.01]">
-                <ExternalLink size={17}/> เปิด Canva ของกลุ่ม
-              </button>
-              <p className="text-center text-xs text-gray-400">
-                ✅ ทุกคนในกลุ่มจะเปิด Canva เดียวกัน
-              </p>
             </div>
           )}
         </div>
