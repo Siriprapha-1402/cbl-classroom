@@ -11,6 +11,7 @@ import ChallengeView from './pages/student/ChallengeView';
 import GroupSummary from './pages/student/GroupSummary';
 import MyWork from './pages/student/MyWork';
 import StudentGroups from './pages/student/Groups';
+import StudentQuizzes from './pages/student/Quizzes';
 
 // Teacher Pages
 import TeacherDashboard from './pages/teacher/Dashboard';
@@ -43,6 +44,7 @@ export default function App() {
           <Route path="challenges/:id" element={<ChallengeView />} />
           <Route path="challenges/:id/summary" element={<GroupSummary />} />
           <Route path="my-work" element={<MyWork />} />
+          <Route path="quizzes" element={<StudentQuizzes />} />
           <Route path="*" element={<Navigate to="home" />} />
         </Route>
 

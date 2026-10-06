@@ -47,6 +47,28 @@ export default function TeacherAssessments() {
   const [savingSkill, setSavingSkill] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
+  // ─── Quiz State (Pre-test & Post-test) ───
+  const [quizClassSummary, setQuizClassSummary] = useState(null);
+  const [loadingQuiz, setLoadingQuiz] = useState(false);
+
+  const loadQuizClassResults = async () => {
+    setLoadingQuiz(true);
+    try {
+      const res = await api.get('/quizzes/class-results');
+      setQuizClassSummary(res.data);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingQuiz(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'quizzes') {
+      loadQuizClassResults();
+    }
+  }, [activeTab]);
+
   // โหลดรายการ Challenges
   useEffect(() => {
     api.get('/challenges')
@@ -357,10 +379,10 @@ export default function TeacherAssessments() {
         </div>
 
         {/* Tab Buttons */}
-        <div className="flex bg-slate-100 p-1.5 rounded-xl self-start md:self-auto">
+        <div className="flex flex-wrap bg-slate-100 p-1.5 rounded-xl self-start md:self-auto gap-1">
           <button
             onClick={() => setActiveTab('behavior')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-xs transition-all ${
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg font-medium text-xs transition-all ${
               activeTab === 'behavior' ? 'bg-white text-primary shadow-sm' : 'text-gray-600 hover:text-gray-900'
             }`}
           >
@@ -368,11 +390,19 @@ export default function TeacherAssessments() {
           </button>
           <button
             onClick={() => setActiveTab('skills')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-xs transition-all ${
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg font-medium text-xs transition-all ${
               activeTab === 'skills' ? 'bg-white text-primary shadow-sm' : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            <Award size={15} /> 2. ประเมินทักษะ Canva (4 ด้าน 21 ข้อ)
+            <Award size={15} /> 2. ประเมินทักษะ Canva (21 ข้อ)
+          </button>
+          <button
+            onClick={() => setActiveTab('quizzes')}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg font-medium text-xs transition-all ${
+              activeTab === 'quizzes' ? 'bg-white text-primary shadow-sm' : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            <FileCheck2 size={15} /> 3. แบบทดสอบก่อน-หลังเรียน (10 ข้อ)
           </button>
         </div>
       </div>
@@ -1212,6 +1242,154 @@ export default function TeacherAssessments() {
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════════════════════
+          TAB 3: ผลแบบทดสอบก่อนเรียนและหลังเรียน (Pre-test / Post-test)
+          ═══════════════════════════════════════════════════════════════════════════ */}
+      {activeTab === 'quizzes' && (
+        <div className="space-y-6 animate-fade-in">
+          {/* Header & Stats Cards */}
+          <div className="card !p-6 space-y-4 shadow-sm border-slate-200">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">
+                  ผลการประเมินแบบทดสอบก่อนเรียนและหลังเรียน (Pre-test & Post-test)
+                </h2>
+                <p className="text-xs text-gray-500 mt-1">
+                  วิชาโปรแกรมนำเสนอ (Microsoft PowerPoint) · 10 ข้อ 4 ตัวเลือก · นักเรียน 43 คน
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 no-print">
+                <button
+                  onClick={loadQuizClassResults}
+                  className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition"
+                >
+                  <RefreshCw size={14} className={loadingQuiz ? 'animate-spin' : ''}/> รีเฟรช
+                </button>
+                <button
+                  onClick={() => window.print()}
+                  className="px-3.5 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition"
+                >
+                  <Printer size={14}/> พิมพ์รายงาน
+                </button>
+              </div>
+            </div>
+
+            {/* 3 Metric Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+              <div className="p-4 bg-amber-50/70 border border-amber-200 rounded-2xl text-center space-y-1">
+                <span className="text-xs font-bold text-amber-800">คะแนนเฉลี่ยก่อนเรียน (Pre-test)</span>
+                <p className="text-3xl font-black text-amber-600">
+                  {quizClassSummary?.stats?.avgPre ?? '0.00'} <span className="text-sm font-normal text-gray-400">/ 10</span>
+                </p>
+                <p className="text-[11px] text-amber-700">
+                  ทำแล้ว {quizClassSummary?.stats?.totalPre ?? 0} จาก {quizClassSummary?.stats?.totalStudents ?? 43} คน
+                </p>
+              </div>
+
+              <div className="p-4 bg-emerald-50/70 border border-emerald-200 rounded-2xl text-center space-y-1">
+                <span className="text-xs font-bold text-emerald-800">คะแนนเฉลี่ยหลังเรียน (Post-test)</span>
+                <p className="text-3xl font-black text-emerald-600">
+                  {quizClassSummary?.stats?.avgPost ?? '0.00'} <span className="text-sm font-normal text-gray-400">/ 10</span>
+                </p>
+                <p className="text-[11px] text-emerald-700">
+                  ทำแล้ว {quizClassSummary?.stats?.totalPost ?? 0} จาก {quizClassSummary?.stats?.totalStudents ?? 43} คน
+                </p>
+              </div>
+
+              <div className="p-4 bg-primary/5 border border-primary/20 rounded-2xl text-center space-y-1">
+                <span className="text-xs font-bold text-primary">พัฒนาการเฉลี่ย (Mean Gain)</span>
+                <p className="text-3xl font-black text-primary">
+                  {Number(quizClassSummary?.stats?.avgGain || 0) >= 0 ? `+${quizClassSummary?.stats?.avgGain || '0.00'}` : quizClassSummary?.stats?.avgGain || '0.00'}
+                </p>
+                <p className="text-[11px] text-gray-500">
+                  คิดเป็นพัฒนาการทางการเรียนรู้
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Students Table */}
+          <div className="card overflow-x-auto !p-0 shadow-sm border-gray-200">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead className="bg-slate-50 border-b border-gray-200 font-bold text-gray-600">
+                <tr>
+                  <th className="p-3.5 text-center w-12">ลำดับ</th>
+                  <th className="p-3.5 w-28">รหัสนักเรียน</th>
+                  <th className="p-3.5">ชื่อ-สกุล</th>
+                  <th className="p-3.5 text-center w-24">กลุ่ม</th>
+                  <th className="p-3.5 text-center w-28 text-amber-700">ก่อนเรียน (Pre-test)</th>
+                  <th className="p-3.5 text-center w-28 text-emerald-700">หลังเรียน (Post-test)</th>
+                  <th className="p-3.5 text-center w-24 text-primary font-bold">ผลต่าง (Gain)</th>
+                  <th className="p-3.5 text-center w-28">สถานะ</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {(!quizClassSummary?.summary || quizClassSummary.summary.length === 0) ? (
+                  <tr>
+                    <td colSpan={8} className="p-8 text-center text-gray-400">กำลังโหลดข้อมูล...</td>
+                  </tr>
+                ) : (
+                  quizClassSummary.summary.map(s => {
+                    const hasBoth = s.preScore !== null && s.postScore !== null;
+                    return (
+                      <tr key={s.id} className="hover:bg-slate-50 transition-colors">
+                        <td className="p-3.5 text-center font-bold text-gray-400">{s.orderNum}</td>
+                        <td className="p-3.5 font-mono text-gray-600 font-semibold">{s.student_code}</td>
+                        <td className="p-3.5 font-medium text-gray-800">{s.name}</td>
+                        <td className="p-3.5 text-center text-gray-500">{s.group_name}</td>
+                        <td className="p-3.5 text-center">
+                          {s.preScore !== null ? (
+                            <span className="font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/50">
+                              {s.preScore}/10
+                            </span>
+                          ) : (
+                            <span className="text-gray-300">—</span>
+                          )}
+                        </td>
+                        <td className="p-3.5 text-center">
+                          {s.postScore !== null ? (
+                            <span className="font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/50">
+                              {s.postScore}/10
+                            </span>
+                          ) : (
+                            <span className="text-gray-300">—</span>
+                          )}
+                        </td>
+                        <td className="p-3.5 text-center">
+                          {hasBoth ? (
+                            <span className={`font-bold px-2 py-0.5 rounded-md text-[11px] ${
+                              s.gain > 0 ? 'bg-green-100 text-green-700' : s.gain === 0 ? 'bg-gray-100 text-gray-600' : 'bg-rose-100 text-rose-700'
+                            }`}>
+                              {s.gain > 0 ? `+${s.gain}` : s.gain}
+                            </span>
+                          ) : (
+                            <span className="text-gray-300">—</span>
+                          )}
+                        </td>
+                        <td className="p-3.5 text-center">
+                          {hasBoth ? (
+                            <span className="text-[11px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
+                              ✓ ครบ 2 ชุด
+                            </span>
+                          ) : s.preScore !== null ? (
+                            <span className="text-[11px] text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
+                              ทำก่อนเรียนแล้ว
+                            </span>
+                          ) : (
+                            <span className="text-[11px] text-gray-400">ยังไม่ทำ</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>

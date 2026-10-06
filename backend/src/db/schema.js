@@ -284,6 +284,20 @@ export function initializeSchema() {
     )`);
   } catch(_) {}
 
+  // Migration: ตารางผลแบบทดสอบก่อนเรียนและหลังเรียน (Pre-test / Post-test)
+  try {
+    db.exec(`CREATE TABLE IF NOT EXISTS quiz_submissions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      student_id INTEGER NOT NULL,
+      quiz_type TEXT NOT NULL CHECK(quiz_type IN ('pre', 'post')),
+      score INTEGER NOT NULL,
+      total_score INTEGER NOT NULL DEFAULT 10,
+      answers_json TEXT NOT NULL,
+      submitted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(student_id, quiz_type)
+    )`);
+  } catch(_) {}
+
   console.log('✅ Database schema initialized');
 }
 

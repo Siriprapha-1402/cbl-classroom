@@ -6,20 +6,77 @@ import api from '../../lib/api';
 export default function MyWork() {
   const navigate = useNavigate();
   const [challenges, setChallenges] = useState([]);
+  const [quizResults, setQuizResults] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get('/challenges').then(r => {
-      const all = r.data.challenges || [];
-      setChallenges(all.filter(c => c.my_status));
-    }).catch(console.error).finally(() => setLoading(false));
+    Promise.all([
+      api.get('/challenges').then(r => (r.data.challenges || []).filter(c => c.my_status)).catch(() => []),
+      api.get('/quizzes/my-results').then(r => r.data?.results).catch(() => null)
+    ]).then(([chals, qResults]) => {
+      setChallenges(chals);
+      setQuizResults(qResults);
+    }).finally(() => setLoading(false));
   }, []);
 
   if (loading) return <div className="flex justify-center items-center h-64"><div className="animate-spin rounded-full h-10 w-10 border-4 border-primary border-t-transparent"/></div>;
 
   return (
     <div className="max-w-2xl mx-auto space-y-5">
-      <h1 className="text-xl font-bold text-gray-800">ผลงานของฉัน</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-bold text-gray-800">ผลงานของฉัน</h1>
+        <button
+          onClick={() => navigate('/student/quizzes')}
+          className="text-xs font-bold text-primary hover:underline flex items-center gap-1"
+        >
+          ทำแบบทดสอบ <ChevronRight size={14}/>
+        </button>
+      </div>
+
+      {/* Quiz Results Card */}
+      {quizResults && (quizResults.pre || quizResults.post) && (
+        <div className="card !p-5 bg-gradient-to-r from-amber-500/10 via-emerald-500/5 to-white border-slate-200 space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="font-bold text-gray-800 text-sm flex items-center gap-2">
+              <span>📝</span> ผลการทำแบบทดสอบ (Microsoft PowerPoint)
+            </h3>
+            <button
+              onClick={() => navigate('/student/quizzes')}
+              className="text-xs text-primary font-bold hover:underline"
+            >
+              ดูเฉลยละเอียด
+            </button>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div className="p-3 bg-white rounded-xl border border-gray-100 text-center">
+              <span className="text-[11px] text-gray-400">ก่อนเรียน (Pre-test)</span>
+              <p className="text-lg font-black text-amber-600">
+                {quizResults.pre ? `${quizResults.pre.score}/10` : '—'}
+              </p>
+              <span className="text-[10px] text-gray-400">{quizResults.pre ? `${quizResults.pre.percentage}%` : 'ยังไม่ได้ทำ'}</span>
+            </div>
+
+            <div className="p-3 bg-white rounded-xl border border-gray-100 text-center">
+              <span className="text-[11px] text-gray-400">หลังเรียน (Post-test)</span>
+              <p className="text-lg font-black text-emerald-600">
+                {quizResults.post ? `${quizResults.post.score}/10` : '—'}
+              </p>
+              <span className="text-[10px] text-gray-400">{quizResults.post ? `${quizResults.post.percentage}%` : 'ยังไม่ได้ทำ'}</span>
+            </div>
+
+            <div className="p-3 bg-white rounded-xl border border-gray-100 text-center col-span-2 sm:col-span-1">
+              <span className="text-[11px] text-gray-400">พัฒนาการ</span>
+              <p className="text-lg font-black text-primary">
+                {(quizResults.pre && quizResults.post) ? `+${quizResults.post.score - quizResults.pre.score}` : '—'}
+              </p>
+              <span className="text-[10px] text-gray-400">
+                {(quizResults.pre && quizResults.post) ? `+${quizResults.post.percentage - quizResults.pre.percentage}%` : 'ทำทั้ง 2 ชุด'}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {challenges.length === 0 ? (
         <div className="card text-center py-14 text-gray-400">

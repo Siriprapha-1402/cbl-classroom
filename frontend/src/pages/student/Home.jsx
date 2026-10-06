@@ -82,6 +82,29 @@ export default function Home() {
         </div>
       </div>
 
+      {/* Pre-test & Post-test Quick Card */}
+      <div 
+        onClick={() => navigate('/student/quizzes')}
+        className="card !p-5 bg-gradient-to-r from-amber-500/10 via-orange-500/5 to-white border-amber-200/80 hover:border-amber-400 cursor-pointer hover:shadow-md transition-all flex items-center justify-between gap-4 group"
+      >
+        <div className="flex items-center gap-3.5">
+          <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center text-xl flex-shrink-0 group-hover:scale-105 transition">
+            📝
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="badge text-[11px] bg-amber-100 text-amber-800 font-bold">10 ข้อ · 4 ตัวเลือก</span>
+              <span className="text-xs text-gray-400 font-medium">Microsoft PowerPoint</span>
+            </div>
+            <h3 className="font-bold text-gray-800 text-sm sm:text-base mt-0.5">แบบทดสอบก่อนเรียน & หลังเรียน</h3>
+            <p className="text-xs text-gray-500 mt-0.5">ทดสอบความรู้พื้นฐานและวัดผลสัมฤทธิ์ทางการเรียนรู้</p>
+          </div>
+        </div>
+        <div className="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center flex-shrink-0 group-hover:translate-x-1 transition shadow-sm">
+          <ChevronRight size={18}/>
+        </div>
+      </div>
+
       {/* Challenges */}
       <div>
         <h2 className="font-bold text-gray-700 mb-3">กิจกรรมทั้งหมด</h2>

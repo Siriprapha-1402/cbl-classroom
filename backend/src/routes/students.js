@@ -68,6 +68,7 @@ function performStudentReset(studentId, target) {
   if (target === 'assessments' || target === 'all' || target === 'all_progress') {
     db.prepare('DELETE FROM behavior_assessments WHERE student_id = ?').run(studentId);
     db.prepare('DELETE FROM skill_assessments WHERE student_id = ?').run(studentId);
+    db.prepare('DELETE FROM quiz_submissions WHERE student_id = ?').run(studentId);
   }
 
   if (target === 'password' || target === 'all') {

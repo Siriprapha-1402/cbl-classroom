@@ -18,6 +18,7 @@ import gamificationRouter from './routes/gamification.js';
 import notificationsRouter from './routes/notifications.js';
 import exportRouter from './routes/export.js';
 import assessmentsRouter from './routes/assessments.js';
+import quizzesRouter from './routes/quizzes.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -49,6 +50,7 @@ app.use('/api/gamification', gamificationRouter);
 app.use('/api/notifications', notificationsRouter);
 app.use('/api/export', exportRouter);
 app.use('/api/assessments', assessmentsRouter);
+app.use('/api/quizzes', quizzesRouter);
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));

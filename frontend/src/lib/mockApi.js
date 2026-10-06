@@ -1,4 +1,5 @@
 import initialData from './initialData.json';
+import { POWERPOINT_QUIZ_QUESTIONS } from '../data/quizQuestions';
 
 const STORAGE_KEY = 'cbl_mock_db_clean_v6';
 
@@ -124,7 +125,8 @@ function getStore() {
     behavior_notes: {},
     skill_assessments: {},
     canva_links: {},
-    group_canva_links: {}
+    group_canva_links: {},
+    quiz_submissions: initialData.quiz_submissions || []
   };
   saveStore(store);
   return store;
@@ -1028,12 +1030,13 @@ export async function handleMockRequest(config) {
       }
     }
 
-    if (target === 'assessments' || target === 'all' || target === 'all_progress') {
+    if (target === 'assessments' || target === 'all' || target === 'all_progress' || target === 'quizzes') {
       if (store.behavior_map && store.behavior_map[sId]) delete store.behavior_map[sId];
       if (store.behavior_notes && store.behavior_notes[sId]) delete store.behavior_notes[sId];
       if (store.skill_assessments && store.skill_assessments[sId]) delete store.skill_assessments[sId];
       if (store.research_assessments) store.research_assessments = store.research_assessments.filter(r => r.student_id !== sId);
       if (store.research_skills) store.research_skills = store.research_skills.filter(r => r.student_id !== sId);
+      if (store.quiz_submissions) store.quiz_submissions = store.quiz_submissions.filter(q => q.student_id !== sId);
     }
 
     if (target === 'activity' || target === 'all' || target === 'all_progress') {
@@ -1965,6 +1968,135 @@ export async function handleMockRequest(config) {
   // 13. Notifications
   if (url === '/notifications') {
     return { status: 200, data: { notifications: [] } };
+  }
+
+  // 14. Quizzes (Pre-test & Post-test)
+  if (url === '/quizzes/questions' && method === 'get') {
+    const safeQuestions = POWERPOINT_QUIZ_QUESTIONS.map(q => ({
+      id: q.id,
+      topic: q.topic,
+      question: q.question,
+      options: q.options
+    }));
+    return { status: 200, data: { questions: safeQuestions, total: safeQuestions.length } };
+  }
+
+  if (url === '/quizzes/my-results' && method === 'get') {
+    const user = getCurrentUser(store, config);
+    const sId = user?.id;
+    const subs = (store.quiz_submissions || []).filter(q => q.student_id === sId);
+    const results = { pre: null, post: null };
+    subs.forEach(r => {
+      results[r.quiz_type] = {
+        score: r.score,
+        total_score: r.total_score,
+        percentage: Math.round((r.score / r.total_score) * 100),
+        submitted_at: r.submitted_at,
+        answers: r.answers || {}
+      };
+    });
+    return {
+      status: 200,
+      data: {
+        results,
+        questionsWithAnswers: POWERPOINT_QUIZ_QUESTIONS
+      }
+    };
+  }
+
+  if (url === '/quizzes/submit' && method === 'post') {
+    const user = getCurrentUser(store, config);
+    const sId = user?.id || 12;
+    const { quizType, answers = {} } = body;
+    let score = 0;
+    const total = POWERPOINT_QUIZ_QUESTIONS.length;
+    const details = [];
+
+    POWERPOINT_QUIZ_QUESTIONS.forEach(q => {
+      const studentChoice = answers[q.id] !== undefined ? Number(answers[q.id]) : null;
+      const isCorrect = studentChoice === q.correctAnswer;
+      if (isCorrect) score += 1;
+      details.push({
+        questionId: q.id,
+        topic: q.topic,
+        studentChoice,
+        correctAnswer: q.correctAnswer,
+        isCorrect,
+        explanation: q.explanation
+      });
+    });
+
+    store.quiz_submissions = store.quiz_submissions || [];
+    store.quiz_submissions = store.quiz_submissions.filter(q => !(q.student_id === sId && q.quiz_type === quizType));
+    store.quiz_submissions.push({
+      id: Date.now(),
+      student_id: sId,
+      quiz_type: quizType,
+      score,
+      total_score: total,
+      answers,
+      submitted_at: new Date().toISOString()
+    });
+
+    saveStore(store);
+    return {
+      status: 200,
+      data: {
+        success: true,
+        quizType,
+        score,
+        total_score: total,
+        percentage: Math.round((score / total) * 100),
+        details,
+        message: `ส่งแบบทดสอบ${quizType === 'pre' ? 'ก่อนเรียน' : 'หลังเรียน'}เรียบร้อยแล้ว!`
+      }
+    };
+  }
+
+  if (url === '/quizzes/class-results' && method === 'get') {
+    const students = (store.users || []).filter(u => u.role === 'student');
+    const subs = store.quiz_submissions || [];
+    const summary = students.map((s, idx) => {
+      const pre = subs.find(q => q.student_id === s.id && q.quiz_type === 'pre');
+      const post = subs.find(q => q.student_id === s.id && q.quiz_type === 'post');
+      const gain = (post && pre) ? post.score - pre.score : null;
+      let group_name = '-';
+      if (store.groups) {
+        const g = store.groups.find(grp => grp.members && grp.members.some(m => m.id === s.id || m.student_code === s.username));
+        if (g) group_name = g.name;
+      }
+      return {
+        orderNum: idx + 1,
+        id: s.id,
+        name: s.name,
+        username: s.username,
+        student_code: s.student_id || s.username,
+        group_name,
+        preScore: pre ? pre.score : null,
+        postScore: post ? post.score : null,
+        gain,
+        preSubmittedAt: pre?.submitted_at || null,
+        postSubmittedAt: post?.submitted_at || null
+      };
+    });
+    const totalPre = summary.filter(s => s.preScore !== null).length;
+    const totalPost = summary.filter(s => s.postScore !== null).length;
+    const avgPre = totalPre > 0 ? (summary.reduce((acc, s) => acc + (s.preScore || 0), 0) / totalPre).toFixed(2) : 0;
+    const avgPost = totalPost > 0 ? (summary.reduce((acc, s) => acc + (s.postScore || 0), 0) / totalPost).toFixed(2) : 0;
+    return {
+      status: 200,
+      data: {
+        summary,
+        stats: {
+          totalStudents: students.length,
+          totalPre,
+          totalPost,
+          avgPre: Number(avgPre),
+          avgPost: Number(avgPost),
+          avgGain: (avgPost - avgPre).toFixed(2)
+        }
+      }
+    };
   }
 
   // Fallback for any other endpoint

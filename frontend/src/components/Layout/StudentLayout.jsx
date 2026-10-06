@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { Home, FolderOpen, LogOut, Users } from 'lucide-react';
+import { Home, FolderOpen, LogOut, Users, FileCheck2 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 
 export default function StudentLayout() {
@@ -8,9 +8,10 @@ export default function StudentLayout() {
   const navigate = useNavigate();
 
   const navItems = [
-    { to: '/student/home',    icon: <Home size={20}/>,    label: 'กิจกรรม' },
-    { to: '/student/groups',  icon: <Users size={20}/>,   label: 'กลุ่มของฉัน' },
-    { to: '/student/my-work', icon: <FolderOpen size={20}/>, label: 'ผลงานของฉัน' },
+    { to: '/student/home',    icon: <Home size={20}/>,        label: 'กิจกรรม' },
+    { to: '/student/quizzes', icon: <FileCheck2 size={20}/>,   label: 'แบบทดสอบ' },
+    { to: '/student/groups',  icon: <Users size={20}/>,       label: 'กลุ่มของฉัน' },
+    { to: '/student/my-work', icon: <FolderOpen size={20}/>,  label: 'ผลงานของฉัน' },
   ];
 
   return (
