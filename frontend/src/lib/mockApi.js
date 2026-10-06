@@ -159,7 +159,7 @@ export async function handleMockRequest(config) {
         };
       } else {
         const err = new Error('รหัสผ่านไม่ถูกต้อง');
-        err.response = { status: 401, data: { error: 'รหัสผ่านครูผู้สอนไม่ถูกต้อง (รหัสผ่านคือ: teacheradmin101)' } };
+        err.response = { status: 401, data: { error: 'รหัสผ่านไม่ถูกต้อง' } };
         throw err;
       }
     }
@@ -186,13 +186,13 @@ export async function handleMockRequest(config) {
         };
       } else {
         const err = new Error('รหัสผ่านไม่ถูกต้อง');
-        err.response = { status: 401, data: { error: 'รหัสผ่านไม่ถูกต้อง (รหัสผ่านคือรหัสนักเรียน 11 หลัก เหมือนกับ Username)' } };
+        err.response = { status: 401, data: { error: 'รหัสผ่านไม่ถูกต้อง' } };
         throw err;
       }
     }
 
     const err = new Error('ไม่พบผู้ใช้งาน');
-    err.response = { status: 401, data: { error: 'ไม่พบชื่อผู้ใช้หรือรหัสนักเรียนนี้ในระบบ (กรุณาใช้รหัส 69219100001 ถึง 69219100043 หรือ Teacheradmin)' } };
+    err.response = { status: 401, data: { error: 'ไม่พบชื่อผู้ใช้ในระบบ' } };
     throw err;
   }
 

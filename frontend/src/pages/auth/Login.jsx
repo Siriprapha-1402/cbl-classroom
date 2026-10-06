@@ -40,16 +40,7 @@ export default function Login() {
     }
   };
 
-  const fillDemoAccount = () => {
-    if (isTeacher) {
-      setUsername('Teacheradmin');
-      setPassword('teacheradmin101');
-    } else {
-      setUsername('69219100001');
-      setPassword('69219100001');
-    }
-    setError('');
-  };
+
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden"
@@ -120,7 +111,7 @@ export default function Login() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
               </svg>
               <input type="text" value={username} onChange={e => setUsername(e.target.value)} required autoFocus autoComplete="username"
-                placeholder={isTeacher ? 'กรอก Teacheradmin' : 'กรอกรหัสนักเรียน 11 หลัก'}
+                placeholder={isTeacher ? 'กรอก Username ของคุณ' : 'กรอกรหัสนักเรียน 11 หลัก'}
                 className="flex-1 bg-transparent outline-none text-sm text-gray-700 placeholder-gray-300"/>
             </div>
           </div>
@@ -140,7 +131,7 @@ export default function Login() {
                 onChange={e => setPassword(e.target.value)}
                 required
                 autoComplete="current-password"
-                placeholder={isTeacher ? '••••••••' : 'รหัสเดียวกับรหัสนักเรียน'}
+                placeholder="••••••••"
                 className="flex-1 bg-transparent outline-none text-sm text-gray-700 placeholder-gray-300"
               />
               <button
@@ -163,23 +154,9 @@ export default function Login() {
             </div>
           </div>
 
-          {/* Quick-fill helper */}
-          <div className="flex items-center justify-between text-xs pt-1">
-            <span className="text-gray-400">
-              {isTeacher ? 'บัญชีครู: Teacheradmin' : 'นักเรียน: 69219100001'}
-            </span>
-            <button
-              type="button"
-              onClick={fillDemoAccount}
-              className="text-blue-600 hover:text-blue-700 font-semibold underline underline-offset-2"
-            >
-              กดเพื่อใส่รหัสตัวอย่าง
-            </button>
-          </div>
-
           {/* Submit */}
           <button type="submit" disabled={loading}
-            className="w-full py-3.5 rounded-2xl text-white font-semibold text-sm flex items-center justify-center gap-2 transition-all disabled:opacity-60 mt-3 hover:opacity-95 cursor-pointer"
+            className="w-full py-3.5 rounded-2xl text-white font-semibold text-sm flex items-center justify-center gap-2 transition-all disabled:opacity-60 mt-4 hover:opacity-95 cursor-pointer"
             style={{ background: loading ? '#93C5FD' : 'linear-gradient(135deg, #3B82F6, #2563EB)', boxShadow: '0 4px 20px rgba(59,130,246,0.4)' }}>
             {loading ? (
               <>
@@ -203,8 +180,8 @@ export default function Login() {
         {/* Hint */}
         <p className="text-center text-xs text-gray-400 mt-5">
           {isTeacher
-            ? 'ใช้ Username: Teacheradmin และ Password: teacheradmin101'
-            : 'Username และ Password คือรหัสนักเรียน 11 หลักของคุณ'}
+            ? 'กรุณากรอก Username และ Password ของครูผู้สอน'
+            : 'กรุณากรอกรหัสนักเรียนและรหัสผ่านเพื่อเข้าสู่ระบบ'}
         </p>
       </div>
 
