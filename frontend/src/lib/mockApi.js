@@ -70,6 +70,21 @@ function getStore() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
+      // Auto-upgrade / sync to clean state if version < 7
+      if (!parsed.version || parsed.version < 7) {
+        parsed.version = 7;
+        parsed.groups = (parsed.groups && parsed.groups.length > 0) ? parsed.groups : (initialData.groups || []);
+        parsed.student_challenges = [];
+        parsed.submissions = [];
+        parsed.scores = [];
+        parsed.feedback = [];
+        parsed.reflections = [];
+        parsed.mission_progress = [];
+        parsed.checklist_completions = [];
+        parsed.student_badges = [];
+        parsed.activity_logs = [];
+        saveStore(parsed);
+      }
       // Auto-heal only if parsed.challenges is missing or not an array
       if (!Array.isArray(parsed.challenges)) {
         parsed.challenges = initialData.challenges || [];
@@ -84,6 +99,7 @@ function getStore() {
   }
   // Initialize with clean data from initialData.json
   const store = {
+    version: 7,
     users: initialData.users || [],
     classes: initialData.classes || [],
     class_enrollments: initialData.class_enrollments || [],
@@ -945,7 +961,120 @@ export async function handleMockRequest(config) {
     };
   }
 
+  // Helper for resetting student mock data
+  function performMockStudentReset(targetStudentId, target = 'all_progress') {
+    const sId = Number(targetStudentId);
+    const s = (store.users || []).find(u => u.id === sId);
+    const sCode = s?.student_id || s?.username;
+
+    if (target === 'xp' || target === 'all' || target === 'all_progress') {
+      (store.student_challenges || []).forEach(sc => {
+        if (sc.student_id === sId) {
+          sc.score = 0;
+        }
+      });
+      if (store.scores) {
+        store.scores = store.scores.filter(sc => {
+          const matchingSC = (store.student_challenges || []).find(x => x.id === sc.student_challenge_id);
+          return matchingSC ? matchingSC.student_id !== sId : true;
+        });
+      }
+    }
+
+    if (target === 'badges' || target === 'all' || target === 'all_progress') {
+      if (store.student_badges) {
+        store.student_badges = store.student_badges.filter(sb => sb.student_id !== sId);
+      }
+    }
+
+    if (target === 'group' || target === 'all') {
+      if (store.groups && Array.isArray(store.groups)) {
+        store.groups.forEach(g => {
+          if (Array.isArray(g.members)) {
+            g.members = g.members.filter(m => m.id !== sId && m.student_code !== sCode && m.username !== sCode);
+            g.member_count = g.members.length;
+            if (g.leader_id === sId) {
+              g.leader_id = g.members[0]?.id || null;
+              g.leader = g.members[0] || null;
+            }
+          }
+        });
+      }
+    }
+
+    if (target === 'submissions' || target === 'all' || target === 'all_progress') {
+      const scIds = (store.student_challenges || []).filter(sc => sc.student_id === sId).map(sc => sc.id);
+      store.student_challenges = (store.student_challenges || []).filter(sc => sc.student_id !== sId);
+      if (store.submissions) {
+        store.submissions = store.submissions.filter(sub => !scIds.includes(sub.student_challenge_id) && sub.student_id !== sId);
+      }
+      if (store.scores) {
+        store.scores = store.scores.filter(sc => !scIds.includes(sc.student_challenge_id));
+      }
+      if (store.feedback) {
+        store.feedback = store.feedback.filter(fb => !scIds.includes(fb.student_challenge_id));
+      }
+      if (store.reflections) {
+        store.reflections = store.reflections.filter(rf => !scIds.includes(rf.student_challenge_id));
+      }
+      if (store.mission_progress) {
+        store.mission_progress = store.mission_progress.filter(mp => !scIds.includes(mp.student_challenge_id));
+      }
+      if (store.checklist_completions) {
+        store.checklist_completions = store.checklist_completions.filter(cc => !scIds.includes(cc.student_challenge_id));
+      }
+      if (store.canva_links && store.canva_links[sId]) {
+        delete store.canva_links[sId];
+      }
+    }
+
+    if (target === 'assessments' || target === 'all' || target === 'all_progress') {
+      if (store.behavior_map && store.behavior_map[sId]) delete store.behavior_map[sId];
+      if (store.behavior_notes && store.behavior_notes[sId]) delete store.behavior_notes[sId];
+      if (store.skill_assessments && store.skill_assessments[sId]) delete store.skill_assessments[sId];
+      if (store.research_assessments) store.research_assessments = store.research_assessments.filter(r => r.student_id !== sId);
+      if (store.research_skills) store.research_skills = store.research_skills.filter(r => r.student_id !== sId);
+    }
+
+    if (target === 'activity' || target === 'all' || target === 'all_progress') {
+      if (store.activity_logs) {
+        store.activity_logs = store.activity_logs.filter(a => a.user_id !== sId);
+      }
+    }
+
+    return true;
+  }
+
+  // Single student reset: POST /students/:id/reset
+  const stuResetMatch = url.match(/^\/students\/(\d+)\/reset$/);
+  if (stuResetMatch && method === 'post') {
+    const sId = Number(stuResetMatch[1]);
+    const target = body.target || 'all_progress';
+    performMockStudentReset(sId, target);
+    saveStore(store);
+    return { status: 200, data: { success: true, message: `ล้างค่า ${target} ของนักเรียนเรียบร้อยแล้ว` } };
+  }
+
+  // Batch reset: POST /students/reset-batch
+  if (url === '/students/reset-batch' && method === 'post') {
+    const studentIds = Array.isArray(body.studentIds) ? body.studentIds : [];
+    const target = body.target || 'all_progress';
+    studentIds.forEach(sid => performMockStudentReset(sid, target));
+    saveStore(store);
+    return { status: 200, data: { success: true, count: studentIds.length, message: `ล้างค่าให้นักเรียนที่เลือก (${studentIds.length} คน) เรียบร้อยแล้ว` } };
+  }
+
+  // Class reset: POST /students/reset-class
+  if (url === '/students/reset-class' && method === 'post') {
+    const target = body.target || 'all_progress';
+    const allStudents = (store.users || []).filter(u => u.role === 'student');
+    allStudents.forEach(s => performMockStudentReset(s.id, target));
+    saveStore(store);
+    return { status: 200, data: { success: true, count: allStudents.length, message: `ล้างค่าข้อมูลนักเรียนทั้งห้องเรียบร้อยแล้ว` } };
+  }
+
   if (url.match(/^\/students\/.*reset/)) {
+    saveStore(store);
     return { status: 200, data: { ok: true, message: 'รีเซ็ตข้อมูลสำเร็จ' } };
   }
 

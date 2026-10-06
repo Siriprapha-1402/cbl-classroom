@@ -12,11 +12,11 @@ function performStudentReset(studentId, target) {
   const student = db.prepare("SELECT id, username FROM users WHERE id = ? AND role = 'student'").get(studentId);
   if (!student) return false;
 
-  if (target === 'xp' || target === 'all') {
+  if (target === 'xp' || target === 'all' || target === 'all_progress') {
     db.prepare('DELETE FROM xp_log WHERE student_id = ?').run(studentId);
   }
 
-  if (target === 'badges' || target === 'all') {
+  if (target === 'badges' || target === 'all' || target === 'all_progress') {
     db.prepare('DELETE FROM student_badges WHERE student_id = ?').run(studentId);
   }
 
@@ -25,7 +25,7 @@ function performStudentReset(studentId, target) {
     db.prepare('UPDATE groups SET leader_id = NULL WHERE leader_id = ?').run(studentId);
   }
 
-  if (target === 'submissions' || target === 'all') {
+  if (target === 'submissions' || target === 'all' || target === 'all_progress') {
     db.prepare(`
       DELETE FROM submissions 
       WHERE student_challenge_id IN (SELECT id FROM student_challenges WHERE student_id = ?)
@@ -65,7 +65,7 @@ function performStudentReset(studentId, target) {
     db.prepare('DELETE FROM student_challenges WHERE student_id = ?').run(studentId);
   }
 
-  if (target === 'assessments' || target === 'all') {
+  if (target === 'assessments' || target === 'all' || target === 'all_progress') {
     db.prepare('DELETE FROM behavior_assessments WHERE student_id = ?').run(studentId);
     db.prepare('DELETE FROM skill_assessments WHERE student_id = ?').run(studentId);
   }

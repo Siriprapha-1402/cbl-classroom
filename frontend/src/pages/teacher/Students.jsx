@@ -23,13 +23,14 @@ import api from '../../lib/api';
 const LEVEL_COLORS = ['bg-gray-200', 'bg-blue-200', 'bg-purple-200', 'bg-orange-200', 'bg-yellow-300'];
 
 const RESET_OPTIONS = [
+  { id: 'all_progress', label: '⚡ ล้างผลงานและคะแนนทั้งหมด (เก็บกลุ่มไว้)', icon: <RotateCcw size={18} className="text-amber-500" />, desc: 'รีเซ็ต XP, ประวัติส่งงาน, คะแนน, ความก้าวหน้า และเหรียญรางวัลกลับเป็น 0 (ค่าเริ่มต้น) โดยยังคงกลุ่มเดิมไว้' },
+  { id: 'all', label: '💥 ล้างข้อมูลทุกรายการทั้งหมด (Full Reset รวมล้างกลุ่ม)', icon: <Trash2 size={18} className="text-red-500" />, desc: 'รีเซ็ตข้อมูลทุกอย่างข้างต้น รวมถึงนำนักเรียนออกจากกลุ่มทั้งหมด' },
+  { id: 'submissions', label: 'ประวัติการส่งงานและคะแนน', icon: <FileText size={18} className="text-blue-500" />, desc: 'ลบไฟล์งาน, ลิงก์ Canva, คะแนน, ข้อเสนอแนะ, และมิชชันที่ทำ' },
   { id: 'xp', label: 'แต้ม XP และเลเวล', icon: <Trophy size={18} className="text-amber-500" />, desc: 'ลบประวัติการรับ XP ทั้งหมด คืนค่าเป็น 0 XP (Level 1)' },
   { id: 'badges', label: 'เหรียญรางวัล (Badges)', icon: <Award size={18} className="text-purple-500" />, desc: 'ลบเหรียญรางวัลที่ได้รับทั้งหมด' },
-  { id: 'submissions', label: 'ประวัติการส่งงานและคะแนน', icon: <FileText size={18} className="text-blue-500" />, desc: 'ลบไฟล์งาน, ลิงก์ Canva, คะแนน, ข้อเสนอแนะ, และมิชชันที่ทำ' },
   { id: 'group', label: 'กลุ่มที่สังกัด', icon: <Users size={18} className="text-emerald-500" />, desc: 'นำออกจากกลุ่ม และยกเลิกสถานะหัวหน้ากลุ่ม' },
   { id: 'assessments', label: 'ผลการประเมินวิจัย (พฤติกรรม & ทักษะ Canva)', icon: <ClipboardCheck size={18} className="text-indigo-500" />, desc: 'ลบข้อมูลแบบบันทึกพฤติกรรมการส่งงาน และแบบประเมินทักษะ Canva' },
-  { id: 'password', label: 'รหัสผ่าน (คืนค่าเริ่มต้น)', icon: <Key size={18} className="text-orange-500" />, desc: 'รีเซ็ตรหัสผ่านกลับเป็นรหัสนักเรียน 11 หลัก' },
-  { id: 'all', label: '💥 ล้างข้อมูลทุกรายการทั้งหมด (Full Reset)', icon: <Trash2 size={18} className="text-red-500" />, desc: 'รีเซ็ตข้อมูลทุกอย่างข้างต้นกลับเป็นค่าเริ่มต้นเหมือนนักเรียนใหม่' }
+  { id: 'password', label: 'รหัสผ่าน (คืนค่าเริ่มต้น)', icon: <Key size={18} className="text-orange-500" />, desc: 'รีเซ็ตรหัสผ่านกลับเป็นรหัสนักเรียน 11 หลัก' }
 ];
 
 export default function Students() {
@@ -46,7 +47,7 @@ export default function Students() {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState('single'); // 'single' | 'batch' | 'class'
   const [targetStudent, setTargetStudent] = useState(null);
-  const [selectedTarget, setSelectedTarget] = useState('xp');
+  const [selectedTarget, setSelectedTarget] = useState('all_progress');
   const [resetting, setResetting] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
@@ -64,6 +65,25 @@ export default function Students() {
 
   useEffect(() => {
     loadStudents();
+
+    let bc;
+    try {
+      bc = new BroadcastChannel('cbl_channel');
+      bc.onmessage = () => loadStudents();
+    } catch (e) {}
+
+    const handleSync = (e) => {
+      if (!e?.key || e.key.startsWith('cbl_mock_db')) loadStudents();
+    };
+
+    window.addEventListener('storage', handleSync);
+    window.addEventListener('cbl_storage_update', handleSync);
+
+    return () => {
+      if (bc) bc.close();
+      window.removeEventListener('storage', handleSync);
+      window.removeEventListener('cbl_storage_update', handleSync);
+    };
   }, []);
 
   useEffect(() => {
@@ -94,20 +114,20 @@ export default function Students() {
   const openSingleReset = (student) => {
     setTargetStudent(student);
     setModalMode('single');
-    setSelectedTarget('xp');
+    setSelectedTarget('all_progress');
     setModalOpen(true);
   };
 
   const openBatchReset = () => {
     if (selectedIds.length === 0) return;
     setModalMode('batch');
-    setSelectedTarget('xp');
+    setSelectedTarget('all_progress');
     setModalOpen(true);
   };
 
   const openClassReset = () => {
     setModalMode('class');
-    setSelectedTarget('xp');
+    setSelectedTarget('all_progress');
     setModalOpen(true);
   };
 
@@ -130,6 +150,17 @@ export default function Students() {
 
       setModalOpen(false);
       setTimeout(() => setSuccessMessage(''), 4000);
+      
+      // Dispatch sync events across open tabs
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('cbl_storage_update'));
+        try {
+          const bc = new BroadcastChannel('cbl_channel');
+          bc.postMessage({ type: 'UPDATED' });
+          bc.close();
+        } catch (e) {}
+      }
+
       await loadStudents();
     } catch (err) {
       alert(err.response?.data?.error || 'เกิดข้อผิดพลาดในการล้างค่า');
@@ -392,8 +423,8 @@ export default function Students() {
                 onClick={handleExecuteReset}
                 disabled={resetting}
                 className={`px-5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md transition-all ${
-                  selectedTarget === 'all'
-                    ? 'bg-red-600 hover:bg-red-700 text-white shadow-red-600/20'
+                  (selectedTarget === 'all' || selectedTarget === 'all_progress')
+                    ? 'bg-rose-600 hover:bg-rose-700 text-white shadow-rose-600/20'
                     : 'bg-slate-800 hover:bg-slate-900 text-white shadow-slate-800/20'
                 }`}
               >
