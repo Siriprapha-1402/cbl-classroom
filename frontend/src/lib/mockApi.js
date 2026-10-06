@@ -1,6 +1,6 @@
 import initialData from './initialData.json';
 
-const STORAGE_KEY = 'cbl_mock_db_v1';
+const STORAGE_KEY = 'cbl_mock_db_v2';
 
 // Rubric definition
 export const RUBRIC_STRUCTURE = {
@@ -167,8 +167,8 @@ export async function handleMockRequest(config) {
     // Student check
     const student = store.users.find(u => u.role === 'student' && (u.username === username || u.student_id === username));
     if (student) {
-      // Allow password matching student_id or default password
-      if (password === student.username || password === student.student_id || password === 'password123' || password === '123456') {
+      // รหัสผ่านเข้าระบบของนักเรียนคือรหัสนักเรียน
+      if (password === student.username || password === student.student_id) {
         const token = 'mock-token-student-' + student.id + '-' + Date.now();
         return {
           status: 200,
