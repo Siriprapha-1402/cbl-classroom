@@ -806,9 +806,79 @@
       "criteria_type": "streak_5"
     }
   ],
-  "challenges": [],
-  "missions": [],
-  "checklist_items": [],
+  "challenges": [
+    {
+      "id": 1,
+      "class_id": 1,
+      "teacher_id": 1,
+      "title": "กิจกรรมที่ 1: การออกแบบสื่อนำเสนอแนะนำตนเองและแผนกวิชา",
+      "description": "ให้นักเรียนออกแบบสไลด์นำเสนอแนะนำตนเองและแผนกวิชาด้วย Canva ให้มีความสวยงาม น่าสนใจ และสื่อความหมายชัดเจน",
+      "scenario": "จำลองสถานการณ์การแนะนำตนเองในองค์กร เพื่อฝึกทักษะการปฏิบัติงานและการออกแบบนำเสนอด้วย Canva",
+      "goals": "สร้างสรรค์สื่อนำเสนอแนะนำตนเองและแผนกวิชาด้วย Canva ได้อย่างถูกต้องและสวยงาม",
+      "deliverables": "ลิงก์ชิ้นงาน Canva และเอกสารนำเสนอ",
+      "duration_minutes": 60,
+      "start_date": "2026-10-01T08:30:00.000Z",
+      "deadline": "2026-10-31T23:59:00.000Z",
+      "max_score": 100,
+      "rubric": "การวางแผน (20%), การใช้งาน Canva (30%), การจัดการข้อความ (25%), คุณภาพผลงาน (25%)",
+      "difficulty": "medium",
+      "group_size": 1,
+      "status": "active",
+      "created_at": "2026-10-06T00:00:00.000Z"
+    }
+  ],
+  "missions": [
+    {
+      "id": 1,
+      "challenge_id": 1,
+      "order_num": 1,
+      "title": "ขั้นที่ 1: วิเคราะห์โจทย์และเตรียมข้อมูลแนะนำตนเอง",
+      "description": "รวบรวมข้อมูลส่วนตัว ประวัติการศึกษา และข้อมูลแผนกวิชาที่ศึกษา",
+      "xp_reward": 10
+    },
+    {
+      "id": 2,
+      "challenge_id": 1,
+      "order_num": 2,
+      "title": "ขั้นที่ 2: วางโครงร่างและออกแบบสื่อนำเสนอบน Canva",
+      "description": "เลือก Template จัดวางเนื้อหา รูปภาพ และองค์ประกอบให้สวยงาม",
+      "xp_reward": 10
+    },
+    {
+      "id": 3,
+      "challenge_id": 1,
+      "order_num": 3,
+      "title": "ขั้นที่ 3: ตรวจสอบความถูกต้องและส่งลิงก์ผลงาน",
+      "description": "ตรวจสอบ Checklist และนำลิงก์ Canva มาส่งในระบบ",
+      "xp_reward": 10
+    }
+  ],
+  "checklist_items": [
+    {
+      "id": 1,
+      "challenge_id": 1,
+      "item_text": "มีหน้าปกและข้อมูลแนะนำตนเองครบถ้วน",
+      "order_num": 1
+    },
+    {
+      "id": 2,
+      "challenge_id": 1,
+      "item_text": "มีข้อมูลแผนกวิชาและสาขางานชัดเจน",
+      "order_num": 2
+    },
+    {
+      "id": 3,
+      "challenge_id": 1,
+      "item_text": "การจัดวางตัวอักษรและภาพมีความสวยงามและอ่านง่าย",
+      "order_num": 3
+    },
+    {
+      "id": 4,
+      "challenge_id": 1,
+      "item_text": "ตั้งค่าลิงก์ Canva เป็น Anyone with the link can view หรือ edit",
+      "order_num": 4
+    }
+  ],
   "student_challenges": [],
   "submissions": [],
   "checklist_completions": [],

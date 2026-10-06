@@ -9,16 +9,46 @@ export default function ChallengeList() {
   const [loading, setLoading] = useState(true);
 
   const load = () => api.get('/challenges').then(r => setChallenges(r.data.challenges || [])).catch(console.error).finally(() => setLoading(false));
-  useEffect(() => { load(); }, []);
+
+  useEffect(() => {
+    load();
+    let bc;
+    try {
+      bc = new BroadcastChannel('cbl_channel');
+      bc.onmessage = () => load();
+    } catch (e) {}
+    const handleSync = () => load();
+    window.addEventListener('storage', handleSync);
+    window.addEventListener('cbl_storage_update', handleSync);
+    const interval = setInterval(load, 3000);
+    return () => {
+      if (bc) bc.close();
+      window.removeEventListener('storage', handleSync);
+      window.removeEventListener('cbl_storage_update', handleSync);
+      clearInterval(interval);
+    };
+  }, []);
 
   const handlePublish = async (id) => {
     await api.post(`/challenges/${id}/publish`);
+    try {
+      const bc = new BroadcastChannel('cbl_channel');
+      bc.postMessage({ type: 'UPDATED', action: 'CHALLENGE_PUBLISHED', id });
+      bc.close();
+    } catch (e) {}
+    if (typeof window !== 'undefined') window.dispatchEvent(new Event('cbl_storage_update'));
     load();
   };
 
   const handleDelete = async (id) => {
     if (!window.confirm('ลบกิจกรรมนี้หรือไม่?')) return;
     await api.delete(`/challenges/${id}`).catch(console.error);
+    try {
+      const bc = new BroadcastChannel('cbl_channel');
+      bc.postMessage({ type: 'UPDATED', action: 'CHALLENGE_DELETED', id });
+      bc.close();
+    } catch (e) {}
+    if (typeof window !== 'undefined') window.dispatchEvent(new Event('cbl_storage_update'));
     load();
   };
 

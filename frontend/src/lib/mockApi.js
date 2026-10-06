@@ -68,7 +68,17 @@ export const RUBRIC_STRUCTURE = {
 function getStore() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      // Auto-heal: if store is missing challenges, seed with initialData
+      if (!parsed.challenges || parsed.challenges.length === 0) {
+        parsed.challenges = initialData.challenges || [];
+        parsed.missions = (parsed.missions && parsed.missions.length > 0) ? parsed.missions : (initialData.missions || []);
+        parsed.checklist_items = (parsed.checklist_items && parsed.checklist_items.length > 0) ? parsed.checklist_items : (initialData.checklist_items || []);
+        saveStore(parsed);
+      }
+      return parsed;
+    }
   } catch (e) {
     console.warn('Failed to parse mock store from localStorage', e);
   }
@@ -280,7 +290,7 @@ export async function handleMockRequest(config) {
 
   // 3. Challenges - GET
   if (url === '/challenges' && method === 'get') {
-    const currentUser = getCurrentUser(store);
+    const currentUser = getCurrentUser(store, config);
     if (currentUser?.role === 'teacher') {
       const challenges = (store.challenges || []).map(c => {
         const scs = (store.student_challenges || []).filter(sc => sc.challenge_id === c.id);
@@ -292,9 +302,10 @@ export async function handleMockRequest(config) {
       });
       return { status: 200, data: { challenges } };
     } else {
-      // Student view - connected directly with student progress
-      const challenges = (store.challenges || []).filter(c => c.status === 'active').map(c => {
-        const sc = (store.student_challenges || []).find(s => s.challenge_id === c.id && s.student_id === currentUser.id);
+      // Student view - connected directly with teacher challenges
+      const studentId = currentUser?.id;
+      const challenges = (store.challenges || []).filter(c => c.status !== 'archived').map(c => {
+        const sc = studentId ? (store.student_challenges || []).find(s => s.challenge_id === c.id && s.student_id === studentId) : null;
         return {
           ...c,
           my_status: sc ? sc.status : null,
@@ -388,9 +399,9 @@ export async function handleMockRequest(config) {
       }
       const missions = store.missions.filter(m => m.challenge_id === cid);
       const checklistItems = store.checklist_items.filter(cl => cl.challenge_id === cid);
-      const currentUser = getCurrentUser(store);
+      const currentUser = getCurrentUser(store, config);
       let studentProgress = null;
-      if (currentUser?.role === 'student') {
+      if (currentUser?.id) {
         let sc = store.student_challenges.find(s => s.challenge_id === cid && s.student_id === currentUser.id);
         if (sc) {
           const missionProgress = store.mission_progress.filter(mp => mp.student_challenge_id === sc.id);
@@ -413,12 +424,13 @@ export async function handleMockRequest(config) {
   const startMatch = url.match(/^\/challenges\/(\d+)\/start$/);
   if (startMatch && method === 'post') {
     const cid = Number(startMatch[1]);
-    const user = getCurrentUser(store);
-    let sc = store.student_challenges.find(s => s.challenge_id === cid && s.student_id === user.id);
+    const user = getCurrentUser(store, config);
+    const userId = user?.id || (store.users.find(u => u.role === 'student')?.id || 16);
+    let sc = store.student_challenges.find(s => s.challenge_id === cid && s.student_id === userId);
     if (!sc) {
       sc = {
         id: Date.now(),
-        student_id: user.id,
+        student_id: userId,
         challenge_id: cid,
         status: 'in_progress',
         started_at: new Date().toISOString()
@@ -436,12 +448,13 @@ export async function handleMockRequest(config) {
   const submitLinkMatch = url.match(/^\/challenges\/(\d+)\/(submit-link|submit)$/);
   if (submitLinkMatch && method === 'post') {
     const cid = Number(submitLinkMatch[1]);
-    const user = getCurrentUser(store);
-    let sc = store.student_challenges.find(s => s.challenge_id === cid && s.student_id === user.id);
+    const user = getCurrentUser(store, config);
+    const userId = user?.id || (store.users.find(u => u.role === 'student')?.id || 16);
+    let sc = store.student_challenges.find(s => s.challenge_id === cid && s.student_id === userId);
     if (!sc) {
       sc = {
         id: Date.now(),
-        student_id: user.id,
+        student_id: userId,
         challenge_id: cid,
         started_at: new Date().toISOString()
       };

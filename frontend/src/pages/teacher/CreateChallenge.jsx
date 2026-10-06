@@ -49,14 +49,28 @@ export default function CreateChallenge() {
     try {
       const payload = {
         ...form,
+        status: 'active',
         max_score: Number(form.max_score) || 100,
         deadline: form.deadline || null,
         missions: missions.filter(m => m.title.trim()).map((m, i) => ({ ...m, order_num: i + 1, xp_reward: 10 })),
         checklistItems: checklist.filter(Boolean),
       };
       const res = await api.post('/challenges', payload);
-      const newId = res.data.challengeId;
-      if (publish) await api.post(`/challenges/${newId}/publish`);
+      const newId = res.data.challengeId || res.data.id;
+      if (newId) {
+        await api.post(`/challenges/${newId}/publish`).catch(() => {});
+      }
+
+      // Broadcast to student tabs in real time
+      try {
+        const bc = new BroadcastChannel('cbl_channel');
+        bc.postMessage({ type: 'UPDATED', action: 'CHALLENGE_CREATED', id: newId });
+        bc.close();
+      } catch (e) {}
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('cbl_storage_update'));
+      }
+
       navigate('/teacher/challenges');
     } catch (e) {
       setError(e.response?.data?.error || 'เกิดข้อผิดพลาด กรุณาลองใหม่');
@@ -141,11 +155,11 @@ export default function CreateChallenge() {
       <div className="flex gap-3">
         <button onClick={() => handleSave(false)} disabled={saving}
           className="flex-1 py-3 rounded-xl border-2 border-gray-200 text-gray-600 font-semibold hover:bg-gray-50 disabled:opacity-50 text-sm">
-          {saving ? 'กำลังบันทึก...' : '💾 บันทึกฉบับร่าง'}
+          {saving ? 'กำลังบันทึก...' : '💾 บันทึกกิจกรรม'}
         </button>
         <button onClick={() => handleSave(true)} disabled={saving}
           className="flex-1 btn-primary py-3 disabled:opacity-50 text-sm">
-          {saving ? 'กำลังบันทึก...' : '🚀 บันทึกและเผยแพร่'}
+          {saving ? 'กำลังบันทึก...' : '🚀 บันทึกและเผยแพร่ให้นักเรียนทันที'}
         </button>
       </div>
     </div>

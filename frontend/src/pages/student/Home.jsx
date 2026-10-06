@@ -41,7 +41,7 @@ export default function Home() {
 
     window.addEventListener('storage', handleSync);
     window.addEventListener('cbl_storage_update', handleSync);
-    const interval = setInterval(loadData, 4000);
+    const interval = setInterval(loadData, 3000);
 
     return () => {
       if (bc) bc.close();
