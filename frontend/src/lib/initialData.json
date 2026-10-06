@@ -1,0 +1,2274 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "name": "ศิริประภา สมบัติคำ",
+      "username": "Teacheradmin",
+      "password_hash": "$2a$10$GwK0nkavQx2d9QPF1LHq1utdcjcTrw4lIzzTFfGgK5pxdgA9lY2.6",
+      "role": "teacher",
+      "avatar": null,
+      "student_id": null,
+      "class_name": null,
+      "created_at": "2026-09-16 02:06:37"
+    },
+    {
+      "id": 12,
+      "name": "นางสาวกฤษณาพร โพธิมี",
+      "username": "69219100001",
+      "password_hash": "$2a$10$E0365Az7lf/sbUtey592v.tAchnkJP9Gmki.7AHizm6xPKAmXs/ka",
+      "role": "student",
+      "avatar": null,
+      "student_id": "69219100001",
+      "class_name": "ปวช.1/1",
+      "created_at": "2026-09-16 02:28:59"
+    },
+    {
+      "id": 13,
+      "name": "นางสาวกุลนัดดา บุญคุง",
+      "username": "69219100002",
+      "password_hash": "$2a$10$ZS.IN1i1Fd9PWcVoMT93OOdWs1ss.9qiUTjA.WWUIb5cO4Sb9A3IG",
+      "role": "student",
+      "avatar": null,
+      "student_id": "69219100002",
+      "class_name": "ปวช.1/1",
+      "created_at": "2026-09-16 02:28:59"
+    },
+    {
+      "id": 14,
+      "name": "นางสาวจันทร์จิรา จูเจ๊ก",
+      "username": "69219100003",
+      "password_hash": "$2a$10$xhmjkAhzevEUQsVPo2TMcuqYTBotc7bHjkOPMzt6mO1UAeA2teZlG",
+      "role": "student",
+      "avatar": null,
+      "student_id": "69219100003",
+      "class_name": "ปวช.1/1",
+      "created_at": "2026-09-16 02:28:59"
+    },
+    {
+      "id": 15,
+      "name": "นางสาวจิรภิญญา อินทร์ศรีวงษ์",
+      "username": "69219100004",
+      "password_hash": "$2a$10$8CnIi2ltmEHnL.W3UKX/VuVSILgLCbEvFshjmqy2bJBJ9int3SENK",
+      "role": "student",
+      "avatar": null,
+      "student_id": "69219100004",
+      "class_name": "ปวช.1/1",
+      "created_at": "2026-09-16 02:28:59"
+    },
+    {
+      "id": 16,
+      "name": "นายจิรายุ สารวงษ์",
+      "username": "69219100005",
+      "password_hash": "$2a$10$Kvl/Ts603Tq75LbO2ZBauOGavmrWjHH0jO4f4NyJBPTNnlIx/OVz2",
+      "role": "student",
+      "avatar": null,
+      "student_id": "69219100005",
+      "class_name": "ปวช.1/1",
+      "created_at": "2026-09-16 02:28:59"
+    },
+    {
+      "id": 17,
+      "name": "นางสาวชัญญานุช เช้าโต",
+      "username": "69219100006",
+      "password_hash": "$2a$10$J11l1OWXKkr1HYUTiuHmieJnlRI8h/Gdzy2Gtj58W/TuT9z0VSwhq",
+      "role": "student",
+      "avatar": null,
+      "student_id": "69219100006",
+      "class_name": "ปวช.1/1",
+      "created_at": "2026-09-16 02:28:59"
+    },
+    {
+      "id": 18,
+      "name": "นางสาวณัฏฐธิดา นาคแก้ว",
+      "username": "69219100007",
+      "password_hash": "$2a$10$vyR6gZLdp3.NUHC28yPUGe88lQADLEDkhwfhvtQ5mt532phhX2QX2",
+      "role": "student",
+      "avatar": null,
+      "student_id": "69219100007",
+      "class_name": "ปวช.1/1",
+      "created_at": "2026-09-16 02:29:00"
+    },
+    {
+      "id": 19,
+      "name": "เด็กหญิงณัฐธิดา สิงห์ทอง",
+      "username": "69219100008",
+      "password_hash": "$2a$10$Z77pc2JFOzt6wJxuuE.hVOzOiZNpRTlDOZ.fy7hVW9DdxodQBaka2",
+      "role": "student",
+      "avatar": null,
+      "student_id": "69219100008",
+      "class_name": "ปวช.1/1",
+      "created_at": "2026-09-16 02:29:00"
+    },
+    {
+      "id": 20,
+      "name": "นายธนเดช ชัยสา",
+      "username": "69219100009",
+      "password_hash": "$2a$10$w7p6h43nBOQBtB15CfhuneEGlx01/tdjnwRrc96y6AqTBySYoZfoa",
+      "role": "student",
+      "avatar": null,
+      "student_id": "69219100009",
+      "class_name": "ปวช.1/1",
+      "created_at": "2026-09-16 02:29:00"
+    },
+    {
+      "id": 21,
+      "name": "เด็กหญิงธัญญานุช รัสมี",
+      "username": "69219100010",
+      "password_hash": "$2a$10$TotOispv4XqYFIkwcgeBneR8UUxskTKUVNNsLQLgbCWqkm4hhGsMG",
+      "role": "student",
+      "avatar": null,
+      "student_id": "69219100010",
+      "class_name": "ปวช.1/1",
+      "created_at": "2026-09-16 02:29:00"
+    },
+    {
+      "id": 22,
+      "name": "นางสาวนพเกล้า ต๊ะปัญญา",
+      "username": "69219100011",
+      "password_hash": "$2a$10$ES02h5eSC0HMTsPljpK5qezwloyM.dyYOY2uQPfp50A8szMbw0i5C",
+      "role": "student",
+      "avatar": null,
+      "student_id": "69219100011",
+      "class_name": "ปวช.1/1",
+      "created_at": "2026-09-16 02:29:00"
+    },
+    {
+      "id": 23,
+      "name": "นางสาวนิตยา กำเนิดชาติ",
+      "username": "69219100012",
+      "password_hash": "$2a$10$GAr5FemJT9rmRdve/EaZk.XlTtIjz2vrvPM69uWGHGlU01APviiO.",
+      "role": "student",
+      "avatar": null,
+      "student_id": "69219100012",
+      "class_name": "ปวช.1/1",
+      "created_at": "2026-09-16 02:29:00"
+    },
+    {
+      "id": 24,
+      "name": "เด็กหญิงปวิชญา บัวไข",
+      "username": "69219100013",
+      "password_hash": "$2a$10$sWYeO0ZTQfXCwSC73gLjQud4WAl12sskMVFoZCbS2QeA28cdGc7nC",
+      "role": "student",
+      "avatar": null,
+      "student_id": "69219100013",
+      "class_name": "ปวช.1/1",
+      "created_at": "2026-09-16 02:29:00"
+    },
+    {
+      "id": 25,
+      "name": "นางสาวพิชญาภา บุญยะวัฒน์",
+      "username": "69219100014",
+      "password_hash": "$2a$10$NV5sRoXETsfZaYe.sQGB/ejF5DgKRy7uXclCSEgt.3D92Pw5SBB62",
+      "role": "student",
+      "avatar": null,
+      "student_id": "69219100014",
+      "class_name": "ปวช.1/1",
+      "created_at": "2026-09-16 02:29:00"
+    },
+    {
+      "id": 26,
+      "name": "นางสาวภรนิพา อาจมุณี",
+      "username": "69219100015",
+      "password_hash": "$2a$10$9j0NoDurfZnpN1XjLIBKdufrzD0iS5lLCJ7LVRafllTr2aKiPNaj2",
+      "role": "student",
+      "avatar": null,
+      "student_id": "69219100015",
+      "class_name": "ปวช.1/1",
+      "created_at": "2026-09-16 02:29:00"
+    },
+    {
+      "id": 27,
+      "name": "เด็กหญิงภัทรมัย ขันแก้ว",
+      "username": "69219100016",
+      "password_hash": "$2a$10$LndH3n18gzkDHT8XwPpJw.K3xkkliKSLZfk26LdLI3JGL0y9mFUum",
+      "role": "student",
+      "avatar": null,
+      "student_id": "69219100016",
+      "class_name": "ปวช.1/1",
+      "created_at": "2026-09-16 02:29:01"
+    },
+    {
+      "id": 28,
+      "name": "นายรัชชานนท์ จันทร์เที่ยง",
+      "username": "69219100017",
+      "password_hash": "$2a$10$/4pv3Y4sflBv/TsP5VexNOy5mr1q0i9g7iNbLvvH6AKfL1.lHkqwy",
+      "role": "student",
+      "avatar": null,
+      "student_id": "69219100017",
+      "class_name": "ปวช.1/1",
+      "created_at": "2026-09-16 02:29:01"
+    },
+    {
+      "id": 29,
+      "name": "นายวรันธร หิรัญทัศน์",
+      "username": "69219100018",
+      "password_hash": "$2a$10$jfG/JEBSfF3JXW.KcX89VeOBhD06yeGvbNEu62onuEYYahS3JXgsa",
+      "role": "student",
+      "avatar": null,
+      "student_id": "69219100018",
+      "class_name": "ปวช.1/1",
+      "created_at": "2026-09-16 02:29:01"
+    },
+    {
+      "id": 30,
+      "name": "นายสิทธิกวิน เพชรคชสิทธิ์",
+      "username": "69219100019",
+      "password_hash": "$2a$10$spmLs1vOgd4KJTx6JBcecuUki.LAx/raA5TPvplDhfL6.hIhSLRUC",
+      "role": "student",
+      "avatar": null,
+      "student_id": "69219100019",
+      "class_name": "ปวช.1/1",
+      "created_at": "2026-09-16 02:29:01"
+    },
+    {
+      "id": 31,
+      "name": "เด็กหญิงอภิญญา แปรงกระโทก",
+      "username": "69219100020",
+      "password_hash": "$2a$10$/oSDy/17cwWLC7/1JGNS4uTw/uc6GnpJ9yT2.jDdCKYBaKGQGljF6",
+      "role": "student",
+      "avatar": null,
+      "student_id": "69219100020",
+      "class_name": "ปวช.1/1",
+      "created_at": "2026-09-16 02:29:01"
+    },
+    {
+      "id": 32,
+      "name": "นางสาวอริสรา สุราฤทธิ์",
+      "username": "69219100021",
+      "password_hash": "$2a$10$nAIULDsuAXJCdWm3prfWEOgwqDdwwsqP1Ja0VbA67Nyr/tZlTGCta",
+      "role": "student",
+      "avatar": null,
+      "student_id": "69219100021",
+      "class_name": "ปวช.1/1",
+      "created_at": "2026-09-16 02:29:01"
+    },
+    {
+      "id": 33,
+      "name": "นายพชร พูนพิพัตร",
+      "username": "69219100022",
+      "password_hash": "$2a$10$T6OJ5pFJbrULZFv7hgDYQuS53huZmsAo89X11X1S79LSzMwdKBlN.",
+      "role": "student",
+      "avatar": null,
+      "student_id": "69219100022",
+      "class_name": "ปวช.1/1",
+      "created_at": "2026-09-16 02:29:01"
+    },
+    {
+      "id": 34,
+      "name": "เด็กหญิงกิตติยาภา เครือบนอก",
+      "username": "69219100023",
+      "password_hash": "$2a$10$V9WGWNUDRFOIv0Mgb/pfAu.pY5KmGCNtk2vU.LR4r639QjM2FuK2q",
+      "role": "student",
+      "avatar": null,
+      "student_id": "69219100023",
+      "class_name": "ปวช.1/1",
+      "created_at": "2026-09-16 02:29:01"
+    },
+    {
+      "id": 35,
+      "name": "นายคมกริช โพธิ์ศรี",
+      "username": "69219100024",
+      "password_hash": "$2a$10$7udbZzqYm8dDWex.bn3nIuVBtjFo4iZlHs6K0N0R9IHn8snbzInUy",
+      "role": "student",
+      "avatar": null,
+      "student_id": "69219100024",
+      "class_name": "ปวช.1/1",
+      "created_at": "2026-09-16 02:29:01"
+    },
+    {
+      "id": 36,
+      "name": "นางสาวจินตนาพร วงษ์ขำ",
+      "username": "69219100025",
+      "password_hash": "$2a$10$OL3woM7CK6fEc7P/BoN7Eub/aCcoIQuotAsryVdRCLFb7CPM15F9i",
+      "role": "student",
+      "avatar": null,
+      "student_id": "69219100025",
+      "class_name": "ปวช.1/1",
+      "created_at": "2026-09-16 02:29:02"
+    },
+    {
+      "id": 37,
+      "name": "นายจิรมังกร ยศกันโท",
+      "username": "69219100026",
+      "password_hash": "$2a$10$70B2ddYB48hn1mt27MFmSONxRubLrfXQCfHzsCVRGMzH68ZWOPNyW",
+      "role": "student",
+      "avatar": null,
+      "student_id": "69219100026",
+      "class_name": "ปวช.1/1",
+      "created_at": "2026-09-16 02:29:02"
+    },
+    {
+      "id": 38,
+      "name": "นางสาวชนัญชิดา ออมสิน",
+      "username": "69219100027",
+      "password_hash": "$2a$10$v96dtvf/DReyb/UYvJfytuSI0NpdNnXPnfXlakxHwdGQGVMIcb02W",
+      "role": "student",
+      "avatar": null,
+      "student_id": "69219100027",
+      "class_name": "ปวช.1/1",
+      "created_at": "2026-09-16 02:29:02"
+    },
+    {
+      "id": 39,
+      "name": "นางสาวณภัสสรณ์ อัครนันท์ธัญกูล",
+      "username": "69219100028",
+      "password_hash": "$2a$10$D6cZADdevZAjHB6YRzcafOJ7xP3uS9EI8811GxSgbi/ZLkQOdUJUe",
+      "role": "student",
+      "avatar": null,
+      "student_id": "69219100028",
+      "class_name": "ปวช.1/1",
+      "created_at": "2026-09-16 02:29:02"
+    },
+    {
+      "id": 40,
+      "name": "เด็กหญิงณัฐณชา ศรีวิรัตน์",
+      "username": "69219100029",
+      "password_hash": "$2a$10$7umA38Pc1ljRT1QnANhcCe1bn184rBLAwLVpf/1B5/ATE44jKt1cm",
+      "role": "student",
+      "avatar": null,
+      "student_id": "69219100029",
+      "class_name": "ปวช.1/1",
+      "created_at": "2026-09-16 02:29:02"
+    },
+    {
+      "id": 41,
+      "name": "นายณัฐพัชร์ ศรศักดิ์",
+      "username": "69219100030",
+      "password_hash": "$2a$10$SFOTOmMO3102K5HpJjeCW.goKjzEzSzs9DK4cxPvs1uoZ4AaMTRjC",
+      "role": "student",
+      "avatar": null,
+      "student_id": "69219100030",
+      "class_name": "ปวช.1/1",
+      "created_at": "2026-09-16 02:29:02"
+    },
+    {
+      "id": 42,
+      "name": "นายธนินทร์ คุ้มภัย",
+      "username": "69219100031",
+      "password_hash": "$2a$10$jNNxfWQMG3mO90e1gColiujdE.oe.0ntFiPtIWornEqJoyDd6VPrW",
+      "role": "student",
+      "avatar": null,
+      "student_id": "69219100031",
+      "class_name": "ปวช.1/1",
+      "created_at": "2026-09-16 02:29:02"
+    },
+    {
+      "id": 43,
+      "name": "นางสาวธัญพร สินเจริญ",
+      "username": "69219100032",
+      "password_hash": "$2a$10$nmNSZAv9k.janzr04oBDKuVKhyWPKKvG3j5fi7a1ACdsverRWMyb.",
+      "role": "student",
+      "avatar": null,
+      "student_id": "69219100032",
+      "class_name": "ปวช.1/1",
+      "created_at": "2026-09-16 02:29:02"
+    },
+    {
+      "id": 44,
+      "name": "นางสาวน้ำผึ้ง สายกลาง",
+      "username": "69219100033",
+      "password_hash": "$2a$10$vkEfPee1CqFaimtUdWoR..w/iXkGAjuAztsFCXlsBaviHDWf/Wh.C",
+      "role": "student",
+      "avatar": null,
+      "student_id": "69219100033",
+      "class_name": "ปวช.1/1",
+      "created_at": "2026-09-16 02:29:03"
+    },
+    {
+      "id": 45,
+      "name": "นางสาวปริชาติ บัวบาล",
+      "username": "69219100034",
+      "password_hash": "$2a$10$3UKYUc99xForOeAT3pPeq.vU3MEnG0HWrnpQUe6WFSAFTIGQqGNhq",
+      "role": "student",
+      "avatar": null,
+      "student_id": "69219100034",
+      "class_name": "ปวช.1/1",
+      "created_at": "2026-09-16 02:29:03"
+    },
+    {
+      "id": 46,
+      "name": "นายพัสกร พิมพ์สุวรรณ์",
+      "username": "69219100035",
+      "password_hash": "$2a$10$UKfifa3tmydf/54EdR1Xh.qQRFcmHrizgCTtPNF0SvKZomM3ehmnS",
+      "role": "student",
+      "avatar": null,
+      "student_id": "69219100035",
+      "class_name": "ปวช.1/1",
+      "created_at": "2026-09-16 02:29:03"
+    },
+    {
+      "id": 47,
+      "name": "นางสาวพิชามญชุ์ พรมพันใจ",
+      "username": "69219100036",
+      "password_hash": "$2a$10$sFmBoXzGl6LqeumgqVt1C.jotAJIc.Kr75aQA1xEplN7ahQK7t05K",
+      "role": "student",
+      "avatar": null,
+      "student_id": "69219100036",
+      "class_name": "ปวช.1/1",
+      "created_at": "2026-09-16 02:29:03"
+    },
+    {
+      "id": 48,
+      "name": "เด็กหญิงภัทรธิดา พวงเนียม",
+      "username": "69219100037",
+      "password_hash": "$2a$10$ttfJLKDGTuXqv3YBrfJKruuo8SvYAsLJYIaL//FtbM4T4BL3VNage",
+      "role": "student",
+      "avatar": null,
+      "student_id": "69219100037",
+      "class_name": "ปวช.1/1",
+      "created_at": "2026-09-16 02:29:03"
+    },
+    {
+      "id": 49,
+      "name": "นายยงยศ คงเนียม",
+      "username": "69219100038",
+      "password_hash": "$2a$10$dmYuFG/1fO4qD4nP44z5FO010g8qoTgTaduCfxyGysv9YzSLT9O2i",
+      "role": "student",
+      "avatar": null,
+      "student_id": "69219100038",
+      "class_name": "ปวช.1/1",
+      "created_at": "2026-09-16 02:29:03"
+    },
+    {
+      "id": 50,
+      "name": "เด็กหญิงวรัญญา กล่อมใจ",
+      "username": "69219100039",
+      "password_hash": "$2a$10$IdJd6ydDf0AFDpfT3Mu7CeUP9iytKDmyxmxAT/oyZNLfk8rcLIVnW",
+      "role": "student",
+      "avatar": null,
+      "student_id": "69219100039",
+      "class_name": "ปวช.1/1",
+      "created_at": "2026-09-16 02:29:03"
+    },
+    {
+      "id": 51,
+      "name": "นางสาวศิริประภา ใจวัง",
+      "username": "69219100040",
+      "password_hash": "$2a$10$0UAL8dWvh76WkSme29PexO.4WlZ0O7CKvr.OACiLqjZNDg0ijh4l6",
+      "role": "student",
+      "avatar": null,
+      "student_id": "69219100040",
+      "class_name": "ปวช.1/1",
+      "created_at": "2026-09-16 02:29:03"
+    },
+    {
+      "id": 52,
+      "name": "นางสาวสุธิดา จันทรา",
+      "username": "69219100041",
+      "password_hash": "$2a$10$hcQIDtooKHenHkiLFT1j6upfQse86Tt/.uOueq3pFRRIyqcvonZmy",
+      "role": "student",
+      "avatar": null,
+      "student_id": "69219100041",
+      "class_name": "ปวช.1/1",
+      "created_at": "2026-09-16 02:29:03"
+    },
+    {
+      "id": 53,
+      "name": "เด็กหญิงอรณิชา ปัตตะโชติ",
+      "username": "69219100042",
+      "password_hash": "$2a$10$2F1BVh8qCmSJ9Mlj6YTBt.hFUAPHObPsyAITAHjhJJit/uuZjJBQq",
+      "role": "student",
+      "avatar": null,
+      "student_id": "69219100042",
+      "class_name": "ปวช.1/1",
+      "created_at": "2026-09-16 02:29:04"
+    },
+    {
+      "id": 54,
+      "name": "นางสาวอารยา ทาตะนาม",
+      "username": "69219100043",
+      "password_hash": "$2a$10$XSHE1lDk507sfUE9Mg.Ee.exHUKSqzC6OYu92jdHuSjXcXT8kftAG",
+      "role": "student",
+      "avatar": null,
+      "student_id": "69219100043",
+      "class_name": "ปวช.1/1",
+      "created_at": "2026-09-16 02:29:04"
+    }
+  ],
+  "classes": [
+    {
+      "id": 1,
+      "name": "ปวช.1/1",
+      "teacher_id": 1,
+      "academic_year": "2567",
+      "created_at": "2026-09-16 02:06:37"
+    }
+  ],
+  "class_enrollments": [
+    {
+      "id": 11,
+      "student_id": 12,
+      "class_id": 1,
+      "enrolled_at": "2026-09-16 02:28:59"
+    },
+    {
+      "id": 12,
+      "student_id": 13,
+      "class_id": 1,
+      "enrolled_at": "2026-09-16 02:28:59"
+    },
+    {
+      "id": 13,
+      "student_id": 14,
+      "class_id": 1,
+      "enrolled_at": "2026-09-16 02:28:59"
+    },
+    {
+      "id": 14,
+      "student_id": 15,
+      "class_id": 1,
+      "enrolled_at": "2026-09-16 02:28:59"
+    },
+    {
+      "id": 15,
+      "student_id": 16,
+      "class_id": 1,
+      "enrolled_at": "2026-09-16 02:28:59"
+    },
+    {
+      "id": 16,
+      "student_id": 17,
+      "class_id": 1,
+      "enrolled_at": "2026-09-16 02:28:59"
+    },
+    {
+      "id": 17,
+      "student_id": 18,
+      "class_id": 1,
+      "enrolled_at": "2026-09-16 02:29:00"
+    },
+    {
+      "id": 18,
+      "student_id": 19,
+      "class_id": 1,
+      "enrolled_at": "2026-09-16 02:29:00"
+    },
+    {
+      "id": 19,
+      "student_id": 20,
+      "class_id": 1,
+      "enrolled_at": "2026-09-16 02:29:00"
+    },
+    {
+      "id": 20,
+      "student_id": 21,
+      "class_id": 1,
+      "enrolled_at": "2026-09-16 02:29:00"
+    },
+    {
+      "id": 21,
+      "student_id": 22,
+      "class_id": 1,
+      "enrolled_at": "2026-09-16 02:29:00"
+    },
+    {
+      "id": 22,
+      "student_id": 23,
+      "class_id": 1,
+      "enrolled_at": "2026-09-16 02:29:00"
+    },
+    {
+      "id": 23,
+      "student_id": 24,
+      "class_id": 1,
+      "enrolled_at": "2026-09-16 02:29:00"
+    },
+    {
+      "id": 24,
+      "student_id": 25,
+      "class_id": 1,
+      "enrolled_at": "2026-09-16 02:29:00"
+    },
+    {
+      "id": 25,
+      "student_id": 26,
+      "class_id": 1,
+      "enrolled_at": "2026-09-16 02:29:00"
+    },
+    {
+      "id": 26,
+      "student_id": 27,
+      "class_id": 1,
+      "enrolled_at": "2026-09-16 02:29:01"
+    },
+    {
+      "id": 27,
+      "student_id": 28,
+      "class_id": 1,
+      "enrolled_at": "2026-09-16 02:29:01"
+    },
+    {
+      "id": 28,
+      "student_id": 29,
+      "class_id": 1,
+      "enrolled_at": "2026-09-16 02:29:01"
+    },
+    {
+      "id": 29,
+      "student_id": 30,
+      "class_id": 1,
+      "enrolled_at": "2026-09-16 02:29:01"
+    },
+    {
+      "id": 30,
+      "student_id": 31,
+      "class_id": 1,
+      "enrolled_at": "2026-09-16 02:29:01"
+    },
+    {
+      "id": 31,
+      "student_id": 32,
+      "class_id": 1,
+      "enrolled_at": "2026-09-16 02:29:01"
+    },
+    {
+      "id": 32,
+      "student_id": 33,
+      "class_id": 1,
+      "enrolled_at": "2026-09-16 02:29:01"
+    },
+    {
+      "id": 33,
+      "student_id": 34,
+      "class_id": 1,
+      "enrolled_at": "2026-09-16 02:29:01"
+    },
+    {
+      "id": 34,
+      "student_id": 35,
+      "class_id": 1,
+      "enrolled_at": "2026-09-16 02:29:01"
+    },
+    {
+      "id": 35,
+      "student_id": 36,
+      "class_id": 1,
+      "enrolled_at": "2026-09-16 02:29:02"
+    },
+    {
+      "id": 36,
+      "student_id": 37,
+      "class_id": 1,
+      "enrolled_at": "2026-09-16 02:29:02"
+    },
+    {
+      "id": 37,
+      "student_id": 38,
+      "class_id": 1,
+      "enrolled_at": "2026-09-16 02:29:02"
+    },
+    {
+      "id": 38,
+      "student_id": 39,
+      "class_id": 1,
+      "enrolled_at": "2026-09-16 02:29:02"
+    },
+    {
+      "id": 39,
+      "student_id": 40,
+      "class_id": 1,
+      "enrolled_at": "2026-09-16 02:29:02"
+    },
+    {
+      "id": 40,
+      "student_id": 41,
+      "class_id": 1,
+      "enrolled_at": "2026-09-16 02:29:02"
+    },
+    {
+      "id": 41,
+      "student_id": 42,
+      "class_id": 1,
+      "enrolled_at": "2026-09-16 02:29:02"
+    },
+    {
+      "id": 42,
+      "student_id": 43,
+      "class_id": 1,
+      "enrolled_at": "2026-09-16 02:29:02"
+    },
+    {
+      "id": 43,
+      "student_id": 44,
+      "class_id": 1,
+      "enrolled_at": "2026-09-16 02:29:03"
+    },
+    {
+      "id": 44,
+      "student_id": 45,
+      "class_id": 1,
+      "enrolled_at": "2026-09-16 02:29:03"
+    },
+    {
+      "id": 45,
+      "student_id": 46,
+      "class_id": 1,
+      "enrolled_at": "2026-09-16 02:29:03"
+    },
+    {
+      "id": 46,
+      "student_id": 47,
+      "class_id": 1,
+      "enrolled_at": "2026-09-16 02:29:03"
+    },
+    {
+      "id": 47,
+      "student_id": 48,
+      "class_id": 1,
+      "enrolled_at": "2026-09-16 02:29:03"
+    },
+    {
+      "id": 48,
+      "student_id": 49,
+      "class_id": 1,
+      "enrolled_at": "2026-09-16 02:29:03"
+    },
+    {
+      "id": 49,
+      "student_id": 50,
+      "class_id": 1,
+      "enrolled_at": "2026-09-16 02:29:03"
+    },
+    {
+      "id": 50,
+      "student_id": 51,
+      "class_id": 1,
+      "enrolled_at": "2026-09-16 02:29:03"
+    },
+    {
+      "id": 51,
+      "student_id": 52,
+      "class_id": 1,
+      "enrolled_at": "2026-09-16 02:29:03"
+    },
+    {
+      "id": 52,
+      "student_id": 53,
+      "class_id": 1,
+      "enrolled_at": "2026-09-16 02:29:04"
+    },
+    {
+      "id": 53,
+      "student_id": 54,
+      "class_id": 1,
+      "enrolled_at": "2026-09-16 02:29:04"
+    }
+  ],
+  "groups": [
+    {
+      "id": 35,
+      "class_id": 2,
+      "name": "กลุ่ม 01",
+      "leader_id": 56,
+      "created_at": "2026-10-06 02:08:41",
+      "max_size": 6
+    },
+    {
+      "id": 36,
+      "class_id": 2,
+      "name": "กลุ่ม 02",
+      "leader_id": 61,
+      "created_at": "2026-10-06 02:08:41",
+      "max_size": 6
+    }
+  ],
+  "group_members": [],
+  "badges": [
+    {
+      "id": 7,
+      "name": "Deadline Hero",
+      "name_th": "วีรบุรุษ Deadline",
+      "description": "ส่งงานตรงเวลา 3 ครั้ง",
+      "icon": "🏆",
+      "criteria_type": "on_time_count_3"
+    },
+    {
+      "id": 8,
+      "name": "Challenge Master",
+      "name_th": "นักพิชิต Challenge",
+      "description": "ผ่าน Challenge 5 ครั้ง",
+      "icon": "⭐",
+      "criteria_type": "complete_count_5"
+    },
+    {
+      "id": 9,
+      "name": "Early Bird",
+      "name_th": "นกตื่นเช้า",
+      "description": "ส่งงานก่อน Deadline",
+      "icon": "🐦",
+      "criteria_type": "early_submission"
+    },
+    {
+      "id": 10,
+      "name": "Creative Thinker",
+      "name_th": "นักคิดสร้างสรรค์",
+      "description": "ได้คะแนน 90 ขึ้นไป",
+      "icon": "💡",
+      "criteria_type": "high_score_90"
+    },
+    {
+      "id": 11,
+      "name": "Problem Solver",
+      "name_th": "นักแก้ปัญหา",
+      "description": "ผ่าน Challenge ระดับยาก",
+      "icon": "🎯",
+      "criteria_type": "hard_challenge"
+    },
+    {
+      "id": 12,
+      "name": "Consistency",
+      "name_th": "ความสม่ำเสมอ",
+      "description": "ส่งตรงเวลา 5 ครั้งติดต่อกัน",
+      "icon": "🔥",
+      "criteria_type": "streak_5"
+    }
+  ],
+  "challenges": [
+    {
+      "id": 9,
+      "class_id": 1,
+      "teacher_id": 1,
+      "title": "Product Presentation Challenge",
+      "description": "สร้าง Presentation เพื่อนำเสนอสมาร์ทโฟนรุ่นใหม่ของบริษัท TechVision",
+      "scenario": "บริษัท TechVision กำลังจะเปิดตัวสมาร์ทโฟนรุ่นใหม่ล่าสุด และต้องการ Presentation ที่น่าสนใจเพื่อใช้ในการประชาสัมพันธ์สินค้าให้กับกลุ่มลูกค้าเป้าหมายอายุ 18-25 ปี ทีมของคุณจะต้องสร้าง Presentation ที่ดึงดูดใจและสื่อสารจุดเด่นของสินค้าได้อย่างชัดเจน",
+      "goals": "สร้าง Presentation ที่นำเสนอสมาร์ทโฟนรุ่นใหม่ได้อย่างน่าสนใจ ตรงกับกลุ่มเป้าหมาย",
+      "deliverables": "Presentation 5-7 slides, ไฟล์ PDF, ไฟล์ต้นฉบับ",
+      "duration_minutes": 30,
+      "start_date": "2026-09-29T02:08:41.129Z",
+      "deadline": "2026-10-13T02:08:41.129Z",
+      "max_score": 100,
+      "rubric": "เนื้อหา (40%), การออกแบบ (30%), ความคิดสร้างสรรค์ (20%), การนำเสนอ (10%)",
+      "difficulty": "medium",
+      "group_size": 1,
+      "status": "active",
+      "created_at": "2026-10-06 02:08:41"
+    },
+    {
+      "id": 10,
+      "class_id": 1,
+      "teacher_id": 1,
+      "title": "Tourism Presentation Challenge",
+      "description": "สร้าง Presentation เพื่อโปรโมทสถานที่ท่องเที่ยวในจังหวัดเชียงใหม่",
+      "scenario": "สำนักงานการท่องเที่ยวจังหวัดเชียงใหม่ต้องการ Presentation เพื่อโปรโมทสถานที่ท่องเที่ยวให้กับนักท่องเที่ยวต่างชาติ โดยเน้นวัฒนธรรม ธรรมชาติ และอาหารพื้นเมือง",
+      "goals": "สร้าง Presentation ที่ดึงดูดนักท่องเที่ยวต่างชาติให้สนใจมาเที่ยวเชียงใหม่",
+      "deliverables": "Presentation 6-8 slides, ภาพประกอบสวยงาม, ไฟล์ PDF",
+      "duration_minutes": 45,
+      "start_date": "2026-09-29T02:08:41.129Z",
+      "deadline": "2026-10-03T02:08:41.129Z",
+      "max_score": 100,
+      "rubric": "เนื้อหา (35%), ความสวยงาม (35%), ความถูกต้อง (20%), ภาษา (10%)",
+      "difficulty": "medium",
+      "group_size": 1,
+      "status": "active",
+      "created_at": "2026-10-06 02:08:41"
+    },
+    {
+      "id": 11,
+      "class_id": 1,
+      "teacher_id": 1,
+      "title": "Business Pitch Challenge",
+      "description": "สร้าง Pitch Deck สำหรับธุรกิจ StartUp ของตัวเอง",
+      "scenario": "คุณกำลังเป็นผู้ประกอบการรุ่นใหม่ที่ต้องการระดมทุนจากนักลงทุน คุณมีเวลา 3 นาทีในการนำเสนอไอเดียธุรกิจของคุณ Pitch Deck ต้องโน้มน้าวใจนักลงทุนให้เห็นถึงโอกาสทางธุรกิจ",
+      "goals": "สร้าง Pitch Deck ที่โน้มน้าวนักลงทุนได้จริง",
+      "deliverables": "Pitch Deck 8-10 slides, ไฟล์ PDF",
+      "duration_minutes": 40,
+      "start_date": "2026-10-06T02:08:41.129Z",
+      "deadline": "2026-10-09T02:08:41.129Z",
+      "max_score": 100,
+      "rubric": "ความโน้มน้าวใจ (40%), ความเป็นไปได้ (30%), การออกแบบ (20%), การนำเสนอ (10%)",
+      "difficulty": "hard",
+      "group_size": 1,
+      "status": "active",
+      "created_at": "2026-10-06 02:08:41"
+    },
+    {
+      "id": 12,
+      "class_id": 1,
+      "teacher_id": 1,
+      "title": "Technology Presentation Challenge",
+      "description": "อธิบายเทคโนโลยี AI ให้กับนักเรียนมัธยมศึกษา",
+      "scenario": "โรงเรียนมัธยมศึกษาต้องการให้คุณมาบรรยายเรื่อง AI และการประยุกต์ใช้ในชีวิตประจำวันให้นักเรียน ม.3 ฟัง Presentation ต้องเข้าใจง่ายและน่าสนใจสำหรับเด็กอายุ 15 ปี",
+      "goals": "สร้าง Presentation อธิบาย AI ให้เข้าใจง่ายและน่าสนใจ",
+      "deliverables": "Presentation 5-6 slides, ไฟล์ PDF",
+      "duration_minutes": 35,
+      "start_date": "2026-10-06T02:08:41.129Z",
+      "deadline": "2026-10-13T02:08:41.129Z",
+      "max_score": 100,
+      "rubric": "ความเข้าใจง่าย (40%), ความน่าสนใจ (30%), ความถูกต้อง (30%)",
+      "difficulty": "easy",
+      "group_size": 1,
+      "status": "active",
+      "created_at": "2026-10-06 02:08:41"
+    },
+    {
+      "id": 13,
+      "class_id": 1,
+      "teacher_id": 1,
+      "title": "Social Media Marketing Challenge",
+      "description": "วางแผน Social Media Marketing สำหรับแบรนด์แฟชั่น",
+      "scenario": "แบรนด์แฟชั่นรุ่นใหม่ต้องการกลยุทธ์ Social Media Marketing สำหรับ TikTok และ Instagram ทีมของคุณต้องนำเสนอแผนการตลาดที่น่าสนใจและทำได้จริง",
+      "goals": "วางแผน Social Media Marketing ที่มีประสิทธิภาพและทำได้จริง",
+      "deliverables": "Presentation 6-8 slides, ตัวอย่างคอนเทนต์, ไฟล์ PDF",
+      "duration_minutes": 30,
+      "start_date": "2026-10-06T02:08:41.129Z",
+      "deadline": "2026-10-20T02:08:41.129Z",
+      "max_score": 100,
+      "rubric": "กลยุทธ์ (35%), ความสร้างสรรค์ (35%), ความเป็นไปได้ (20%), การนำเสนอ (10%)",
+      "difficulty": "medium",
+      "group_size": 1,
+      "status": "active",
+      "created_at": "2026-10-06 02:08:41"
+    }
+  ],
+  "missions": [
+    {
+      "id": 31,
+      "challenge_id": 6,
+      "order_num": 1,
+      "title": "วิเคราะห์โจทย์และกลุ่มเป้าหมาย",
+      "description": "",
+      "xp_reward": 10
+    },
+    {
+      "id": 32,
+      "challenge_id": 6,
+      "order_num": 2,
+      "title": "วางโครงสร้าง Presentation",
+      "description": "",
+      "xp_reward": 10
+    },
+    {
+      "id": 33,
+      "challenge_id": 6,
+      "order_num": 3,
+      "title": "สร้าง Slide ต้นแบบ",
+      "description": "",
+      "xp_reward": 10
+    },
+    {
+      "id": 34,
+      "challenge_id": 6,
+      "order_num": 4,
+      "title": "เพิ่มเนื้อหาและภาพประกอบ",
+      "description": "",
+      "xp_reward": 10
+    },
+    {
+      "id": 35,
+      "challenge_id": 6,
+      "order_num": 5,
+      "title": "ตรวจสอบและปรับแต่ง",
+      "description": "",
+      "xp_reward": 10
+    },
+    {
+      "id": 36,
+      "challenge_id": 6,
+      "order_num": 6,
+      "title": "ส่งผลงาน",
+      "description": "",
+      "xp_reward": 10
+    },
+    {
+      "id": 37,
+      "challenge_id": 7,
+      "order_num": 1,
+      "title": "ขั้นที่ 1: วิเคราะห์โจทย์",
+      "description": "",
+      "xp_reward": 10
+    },
+    {
+      "id": 38,
+      "challenge_id": 7,
+      "order_num": 2,
+      "title": "ขั้นที่ 2: วางแผนการทำงาน",
+      "description": "",
+      "xp_reward": 10
+    },
+    {
+      "id": 39,
+      "challenge_id": 7,
+      "order_num": 3,
+      "title": "ขั้นที่ 3: ลงมือทำ",
+      "description": "",
+      "xp_reward": 10
+    },
+    {
+      "id": 40,
+      "challenge_id": 8,
+      "order_num": 1,
+      "title": "ขั้นที่ 1: วิเคราะห์โจทย์",
+      "description": "",
+      "xp_reward": 10
+    },
+    {
+      "id": 41,
+      "challenge_id": 8,
+      "order_num": 2,
+      "title": "ขั้นที่ 2: วางแผนการทำงาน",
+      "description": "",
+      "xp_reward": 10
+    },
+    {
+      "id": 42,
+      "challenge_id": 8,
+      "order_num": 3,
+      "title": "ขั้นที่ 3: ลงมือทำ",
+      "description": "",
+      "xp_reward": 10
+    },
+    {
+      "id": 43,
+      "challenge_id": 9,
+      "order_num": 1,
+      "title": "วิเคราะห์โจทย์และกลุ่มเป้าหมาย",
+      "description": "วิเคราะห์สถานการณ์และระบุกลุ่มเป้าหมายของ Presentation",
+      "xp_reward": 10
+    },
+    {
+      "id": 44,
+      "challenge_id": 9,
+      "order_num": 2,
+      "title": "วางโครงสร้าง Presentation",
+      "description": "กำหนดหัวข้อหลักและลำดับเนื้อหาของแต่ละ Slide",
+      "xp_reward": 10
+    },
+    {
+      "id": 45,
+      "challenge_id": 9,
+      "order_num": 3,
+      "title": "สร้าง Slide ต้นแบบ",
+      "description": "สร้าง Slide แรกพร้อม Template ที่เหมาะสม",
+      "xp_reward": 10
+    },
+    {
+      "id": 46,
+      "challenge_id": 9,
+      "order_num": 4,
+      "title": "เพิ่มเนื้อหาและภาพประกอบ",
+      "description": "เพิ่มเนื้อหาครบถ้วนพร้อมภาพประกอบที่เหมาะสม",
+      "xp_reward": 10
+    },
+    {
+      "id": 47,
+      "challenge_id": 9,
+      "order_num": 5,
+      "title": "ตรวจสอบและปรับแต่ง",
+      "description": "ตรวจสอบเนื้อหา การสะกด และความสวยงามโดยรวม",
+      "xp_reward": 10
+    },
+    {
+      "id": 48,
+      "challenge_id": 9,
+      "order_num": 6,
+      "title": "ส่งผลงาน",
+      "description": "บันทึกไฟล์และส่งผลงานตามรูปแบบที่กำหนด",
+      "xp_reward": 10
+    },
+    {
+      "id": 49,
+      "challenge_id": 10,
+      "order_num": 1,
+      "title": "วิเคราะห์โจทย์และกลุ่มเป้าหมาย",
+      "description": "วิเคราะห์สถานการณ์และระบุกลุ่มเป้าหมายของ Presentation",
+      "xp_reward": 10
+    },
+    {
+      "id": 50,
+      "challenge_id": 10,
+      "order_num": 2,
+      "title": "วางโครงสร้าง Presentation",
+      "description": "กำหนดหัวข้อหลักและลำดับเนื้อหาของแต่ละ Slide",
+      "xp_reward": 10
+    },
+    {
+      "id": 51,
+      "challenge_id": 10,
+      "order_num": 3,
+      "title": "สร้าง Slide ต้นแบบ",
+      "description": "สร้าง Slide แรกพร้อม Template ที่เหมาะสม",
+      "xp_reward": 10
+    },
+    {
+      "id": 52,
+      "challenge_id": 10,
+      "order_num": 4,
+      "title": "เพิ่มเนื้อหาและภาพประกอบ",
+      "description": "เพิ่มเนื้อหาครบถ้วนพร้อมภาพประกอบที่เหมาะสม",
+      "xp_reward": 10
+    },
+    {
+      "id": 53,
+      "challenge_id": 10,
+      "order_num": 5,
+      "title": "ตรวจสอบและปรับแต่ง",
+      "description": "ตรวจสอบเนื้อหา การสะกด และความสวยงามโดยรวม",
+      "xp_reward": 10
+    },
+    {
+      "id": 54,
+      "challenge_id": 10,
+      "order_num": 6,
+      "title": "ส่งผลงาน",
+      "description": "บันทึกไฟล์และส่งผลงานตามรูปแบบที่กำหนด",
+      "xp_reward": 10
+    },
+    {
+      "id": 55,
+      "challenge_id": 11,
+      "order_num": 1,
+      "title": "วิเคราะห์โจทย์และกลุ่มเป้าหมาย",
+      "description": "วิเคราะห์สถานการณ์และระบุกลุ่มเป้าหมายของ Presentation",
+      "xp_reward": 10
+    },
+    {
+      "id": 56,
+      "challenge_id": 11,
+      "order_num": 2,
+      "title": "วางโครงสร้าง Presentation",
+      "description": "กำหนดหัวข้อหลักและลำดับเนื้อหาของแต่ละ Slide",
+      "xp_reward": 10
+    },
+    {
+      "id": 57,
+      "challenge_id": 11,
+      "order_num": 3,
+      "title": "สร้าง Slide ต้นแบบ",
+      "description": "สร้าง Slide แรกพร้อม Template ที่เหมาะสม",
+      "xp_reward": 10
+    },
+    {
+      "id": 58,
+      "challenge_id": 11,
+      "order_num": 4,
+      "title": "เพิ่มเนื้อหาและภาพประกอบ",
+      "description": "เพิ่มเนื้อหาครบถ้วนพร้อมภาพประกอบที่เหมาะสม",
+      "xp_reward": 10
+    },
+    {
+      "id": 59,
+      "challenge_id": 11,
+      "order_num": 5,
+      "title": "ตรวจสอบและปรับแต่ง",
+      "description": "ตรวจสอบเนื้อหา การสะกด และความสวยงามโดยรวม",
+      "xp_reward": 10
+    },
+    {
+      "id": 60,
+      "challenge_id": 11,
+      "order_num": 6,
+      "title": "ส่งผลงาน",
+      "description": "บันทึกไฟล์และส่งผลงานตามรูปแบบที่กำหนด",
+      "xp_reward": 10
+    },
+    {
+      "id": 61,
+      "challenge_id": 12,
+      "order_num": 1,
+      "title": "วิเคราะห์โจทย์และกลุ่มเป้าหมาย",
+      "description": "วิเคราะห์สถานการณ์และระบุกลุ่มเป้าหมายของ Presentation",
+      "xp_reward": 10
+    },
+    {
+      "id": 62,
+      "challenge_id": 12,
+      "order_num": 2,
+      "title": "วางโครงสร้าง Presentation",
+      "description": "กำหนดหัวข้อหลักและลำดับเนื้อหาของแต่ละ Slide",
+      "xp_reward": 10
+    },
+    {
+      "id": 63,
+      "challenge_id": 12,
+      "order_num": 3,
+      "title": "สร้าง Slide ต้นแบบ",
+      "description": "สร้าง Slide แรกพร้อม Template ที่เหมาะสม",
+      "xp_reward": 10
+    },
+    {
+      "id": 64,
+      "challenge_id": 12,
+      "order_num": 4,
+      "title": "เพิ่มเนื้อหาและภาพประกอบ",
+      "description": "เพิ่มเนื้อหาครบถ้วนพร้อมภาพประกอบที่เหมาะสม",
+      "xp_reward": 10
+    },
+    {
+      "id": 65,
+      "challenge_id": 12,
+      "order_num": 5,
+      "title": "ตรวจสอบและปรับแต่ง",
+      "description": "ตรวจสอบเนื้อหา การสะกด และความสวยงามโดยรวม",
+      "xp_reward": 10
+    },
+    {
+      "id": 66,
+      "challenge_id": 12,
+      "order_num": 6,
+      "title": "ส่งผลงาน",
+      "description": "บันทึกไฟล์และส่งผลงานตามรูปแบบที่กำหนด",
+      "xp_reward": 10
+    },
+    {
+      "id": 67,
+      "challenge_id": 13,
+      "order_num": 1,
+      "title": "วิเคราะห์โจทย์และกลุ่มเป้าหมาย",
+      "description": "วิเคราะห์สถานการณ์และระบุกลุ่มเป้าหมายของ Presentation",
+      "xp_reward": 10
+    },
+    {
+      "id": 68,
+      "challenge_id": 13,
+      "order_num": 2,
+      "title": "วางโครงสร้าง Presentation",
+      "description": "กำหนดหัวข้อหลักและลำดับเนื้อหาของแต่ละ Slide",
+      "xp_reward": 10
+    },
+    {
+      "id": 69,
+      "challenge_id": 13,
+      "order_num": 3,
+      "title": "สร้าง Slide ต้นแบบ",
+      "description": "สร้าง Slide แรกพร้อม Template ที่เหมาะสม",
+      "xp_reward": 10
+    },
+    {
+      "id": 70,
+      "challenge_id": 13,
+      "order_num": 4,
+      "title": "เพิ่มเนื้อหาและภาพประกอบ",
+      "description": "เพิ่มเนื้อหาครบถ้วนพร้อมภาพประกอบที่เหมาะสม",
+      "xp_reward": 10
+    },
+    {
+      "id": 71,
+      "challenge_id": 13,
+      "order_num": 5,
+      "title": "ตรวจสอบและปรับแต่ง",
+      "description": "ตรวจสอบเนื้อหา การสะกด และความสวยงามโดยรวม",
+      "xp_reward": 10
+    },
+    {
+      "id": 72,
+      "challenge_id": 13,
+      "order_num": 6,
+      "title": "ส่งผลงาน",
+      "description": "บันทึกไฟล์และส่งผลงานตามรูปแบบที่กำหนด",
+      "xp_reward": 10
+    }
+  ],
+  "checklist_items": [
+    {
+      "id": 51,
+      "challenge_id": 6,
+      "item_text": "มีหน้าปกพร้อมชื่อผู้จัดทำ",
+      "order_num": 1
+    },
+    {
+      "id": 52,
+      "challenge_id": 6,
+      "item_text": "เนื้อหาครบถ้วนตามโจทย์",
+      "order_num": 2
+    },
+    {
+      "id": 53,
+      "challenge_id": 6,
+      "item_text": "มีภาพประกอบที่เหมาะสม",
+      "order_num": 3
+    },
+    {
+      "id": 54,
+      "challenge_id": 6,
+      "item_text": "จัดวางองค์ประกอบสวยงาม",
+      "order_num": 4
+    },
+    {
+      "id": 55,
+      "challenge_id": 6,
+      "item_text": "ใช้สีที่เหมาะสม",
+      "order_num": 5
+    },
+    {
+      "id": 56,
+      "challenge_id": 6,
+      "item_text": "ข้อความอ่านง่าย",
+      "order_num": 6
+    },
+    {
+      "id": 57,
+      "challenge_id": 6,
+      "item_text": "ตรวจคำผิดแล้ว",
+      "order_num": 7
+    },
+    {
+      "id": 58,
+      "challenge_id": 6,
+      "item_text": "จำนวน Slide ตรงตามที่กำหนด",
+      "order_num": 8
+    },
+    {
+      "id": 59,
+      "challenge_id": 6,
+      "item_text": "บันทึกไฟล์ถูกรูปแบบ",
+      "order_num": 9
+    },
+    {
+      "id": 60,
+      "challenge_id": 6,
+      "item_text": "ตรวจสอบผลงานครั้งสุดท้ายก่อนส่ง",
+      "order_num": 10
+    },
+    {
+      "id": 61,
+      "challenge_id": 7,
+      "item_text": "เนื้อหาครบถ้วนตามโจทย์",
+      "order_num": 1
+    },
+    {
+      "id": 62,
+      "challenge_id": 7,
+      "item_text": "จัดรูปแบบสวยงามเรียบร้อย",
+      "order_num": 2
+    },
+    {
+      "id": 63,
+      "challenge_id": 7,
+      "item_text": "ตรวจสอบความถูกต้องก่อนส่ง",
+      "order_num": 3
+    },
+    {
+      "id": 64,
+      "challenge_id": 8,
+      "item_text": "เนื้อหาครบถ้วนตามโจทย์",
+      "order_num": 1
+    },
+    {
+      "id": 65,
+      "challenge_id": 8,
+      "item_text": "จัดรูปแบบสวยงามเรียบร้อย",
+      "order_num": 2
+    },
+    {
+      "id": 66,
+      "challenge_id": 8,
+      "item_text": "ตรวจสอบความถูกต้องก่อนส่ง",
+      "order_num": 3
+    },
+    {
+      "id": 67,
+      "challenge_id": 9,
+      "item_text": "มีหน้าปกพร้อมชื่อผู้จัดทำ",
+      "order_num": 1
+    },
+    {
+      "id": 68,
+      "challenge_id": 9,
+      "item_text": "เนื้อหาครบถ้วนตามโจทย์",
+      "order_num": 2
+    },
+    {
+      "id": 69,
+      "challenge_id": 9,
+      "item_text": "มีภาพประกอบที่เหมาะสม",
+      "order_num": 3
+    },
+    {
+      "id": 70,
+      "challenge_id": 9,
+      "item_text": "จัดวางองค์ประกอบสวยงาม",
+      "order_num": 4
+    },
+    {
+      "id": 71,
+      "challenge_id": 9,
+      "item_text": "ใช้สีที่เหมาะสมและกลมกลืน",
+      "order_num": 5
+    },
+    {
+      "id": 72,
+      "challenge_id": 9,
+      "item_text": "ข้อความอ่านง่าย ขนาดตัวอักษรเหมาะสม",
+      "order_num": 6
+    },
+    {
+      "id": 73,
+      "challenge_id": 9,
+      "item_text": "ตรวจคำผิดแล้ว",
+      "order_num": 7
+    },
+    {
+      "id": 74,
+      "challenge_id": 9,
+      "item_text": "จำนวน Slide ตรงตามที่กำหนด",
+      "order_num": 8
+    },
+    {
+      "id": 75,
+      "challenge_id": 9,
+      "item_text": "บันทึกไฟล์ถูกรูปแบบ",
+      "order_num": 9
+    },
+    {
+      "id": 76,
+      "challenge_id": 9,
+      "item_text": "ตรวจสอบผลงานครั้งสุดท้ายก่อนส่ง",
+      "order_num": 10
+    },
+    {
+      "id": 77,
+      "challenge_id": 10,
+      "item_text": "มีหน้าปกพร้อมชื่อผู้จัดทำ",
+      "order_num": 1
+    },
+    {
+      "id": 78,
+      "challenge_id": 10,
+      "item_text": "เนื้อหาครบถ้วนตามโจทย์",
+      "order_num": 2
+    },
+    {
+      "id": 79,
+      "challenge_id": 10,
+      "item_text": "มีภาพประกอบที่เหมาะสม",
+      "order_num": 3
+    },
+    {
+      "id": 80,
+      "challenge_id": 10,
+      "item_text": "จัดวางองค์ประกอบสวยงาม",
+      "order_num": 4
+    },
+    {
+      "id": 81,
+      "challenge_id": 10,
+      "item_text": "ใช้สีที่เหมาะสมและกลมกลืน",
+      "order_num": 5
+    },
+    {
+      "id": 82,
+      "challenge_id": 10,
+      "item_text": "ข้อความอ่านง่าย ขนาดตัวอักษรเหมาะสม",
+      "order_num": 6
+    },
+    {
+      "id": 83,
+      "challenge_id": 10,
+      "item_text": "ตรวจคำผิดแล้ว",
+      "order_num": 7
+    },
+    {
+      "id": 84,
+      "challenge_id": 10,
+      "item_text": "จำนวน Slide ตรงตามที่กำหนด",
+      "order_num": 8
+    },
+    {
+      "id": 85,
+      "challenge_id": 10,
+      "item_text": "บันทึกไฟล์ถูกรูปแบบ",
+      "order_num": 9
+    },
+    {
+      "id": 86,
+      "challenge_id": 10,
+      "item_text": "ตรวจสอบผลงานครั้งสุดท้ายก่อนส่ง",
+      "order_num": 10
+    },
+    {
+      "id": 87,
+      "challenge_id": 11,
+      "item_text": "มีหน้าปกพร้อมชื่อผู้จัดทำ",
+      "order_num": 1
+    },
+    {
+      "id": 88,
+      "challenge_id": 11,
+      "item_text": "เนื้อหาครบถ้วนตามโจทย์",
+      "order_num": 2
+    },
+    {
+      "id": 89,
+      "challenge_id": 11,
+      "item_text": "มีภาพประกอบที่เหมาะสม",
+      "order_num": 3
+    },
+    {
+      "id": 90,
+      "challenge_id": 11,
+      "item_text": "จัดวางองค์ประกอบสวยงาม",
+      "order_num": 4
+    },
+    {
+      "id": 91,
+      "challenge_id": 11,
+      "item_text": "ใช้สีที่เหมาะสมและกลมกลืน",
+      "order_num": 5
+    },
+    {
+      "id": 92,
+      "challenge_id": 11,
+      "item_text": "ข้อความอ่านง่าย ขนาดตัวอักษรเหมาะสม",
+      "order_num": 6
+    },
+    {
+      "id": 93,
+      "challenge_id": 11,
+      "item_text": "ตรวจคำผิดแล้ว",
+      "order_num": 7
+    },
+    {
+      "id": 94,
+      "challenge_id": 11,
+      "item_text": "จำนวน Slide ตรงตามที่กำหนด",
+      "order_num": 8
+    },
+    {
+      "id": 95,
+      "challenge_id": 11,
+      "item_text": "บันทึกไฟล์ถูกรูปแบบ",
+      "order_num": 9
+    },
+    {
+      "id": 96,
+      "challenge_id": 11,
+      "item_text": "ตรวจสอบผลงานครั้งสุดท้ายก่อนส่ง",
+      "order_num": 10
+    },
+    {
+      "id": 97,
+      "challenge_id": 12,
+      "item_text": "มีหน้าปกพร้อมชื่อผู้จัดทำ",
+      "order_num": 1
+    },
+    {
+      "id": 98,
+      "challenge_id": 12,
+      "item_text": "เนื้อหาครบถ้วนตามโจทย์",
+      "order_num": 2
+    },
+    {
+      "id": 99,
+      "challenge_id": 12,
+      "item_text": "มีภาพประกอบที่เหมาะสม",
+      "order_num": 3
+    },
+    {
+      "id": 100,
+      "challenge_id": 12,
+      "item_text": "จัดวางองค์ประกอบสวยงาม",
+      "order_num": 4
+    },
+    {
+      "id": 101,
+      "challenge_id": 12,
+      "item_text": "ใช้สีที่เหมาะสมและกลมกลืน",
+      "order_num": 5
+    },
+    {
+      "id": 102,
+      "challenge_id": 12,
+      "item_text": "ข้อความอ่านง่าย ขนาดตัวอักษรเหมาะสม",
+      "order_num": 6
+    },
+    {
+      "id": 103,
+      "challenge_id": 12,
+      "item_text": "ตรวจคำผิดแล้ว",
+      "order_num": 7
+    },
+    {
+      "id": 104,
+      "challenge_id": 12,
+      "item_text": "จำนวน Slide ตรงตามที่กำหนด",
+      "order_num": 8
+    },
+    {
+      "id": 105,
+      "challenge_id": 12,
+      "item_text": "บันทึกไฟล์ถูกรูปแบบ",
+      "order_num": 9
+    },
+    {
+      "id": 106,
+      "challenge_id": 12,
+      "item_text": "ตรวจสอบผลงานครั้งสุดท้ายก่อนส่ง",
+      "order_num": 10
+    },
+    {
+      "id": 107,
+      "challenge_id": 13,
+      "item_text": "มีหน้าปกพร้อมชื่อผู้จัดทำ",
+      "order_num": 1
+    },
+    {
+      "id": 108,
+      "challenge_id": 13,
+      "item_text": "เนื้อหาครบถ้วนตามโจทย์",
+      "order_num": 2
+    },
+    {
+      "id": 109,
+      "challenge_id": 13,
+      "item_text": "มีภาพประกอบที่เหมาะสม",
+      "order_num": 3
+    },
+    {
+      "id": 110,
+      "challenge_id": 13,
+      "item_text": "จัดวางองค์ประกอบสวยงาม",
+      "order_num": 4
+    },
+    {
+      "id": 111,
+      "challenge_id": 13,
+      "item_text": "ใช้สีที่เหมาะสมและกลมกลืน",
+      "order_num": 5
+    },
+    {
+      "id": 112,
+      "challenge_id": 13,
+      "item_text": "ข้อความอ่านง่าย ขนาดตัวอักษรเหมาะสม",
+      "order_num": 6
+    },
+    {
+      "id": 113,
+      "challenge_id": 13,
+      "item_text": "ตรวจคำผิดแล้ว",
+      "order_num": 7
+    },
+    {
+      "id": 114,
+      "challenge_id": 13,
+      "item_text": "จำนวน Slide ตรงตามที่กำหนด",
+      "order_num": 8
+    },
+    {
+      "id": 115,
+      "challenge_id": 13,
+      "item_text": "บันทึกไฟล์ถูกรูปแบบ",
+      "order_num": 9
+    },
+    {
+      "id": 116,
+      "challenge_id": 13,
+      "item_text": "ตรวจสอบผลงานครั้งสุดท้ายก่อนส่ง",
+      "order_num": 10
+    }
+  ],
+  "student_challenges": [],
+  "submissions": [],
+  "checklist_completions": [],
+  "mission_progress": [],
+  "reflections": [],
+  "activity_logs": [
+    {
+      "id": 22,
+      "user_id": 1,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 1,
+      "metadata": null,
+      "created_at": "2026-09-21 02:47:49"
+    },
+    {
+      "id": 23,
+      "user_id": 1,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 1,
+      "metadata": null,
+      "created_at": "2026-09-21 03:00:54"
+    },
+    {
+      "id": 24,
+      "user_id": 1,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 1,
+      "metadata": null,
+      "created_at": "2026-09-21 03:01:03"
+    },
+    {
+      "id": 25,
+      "user_id": 1,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 1,
+      "metadata": null,
+      "created_at": "2026-09-21 03:08:21"
+    },
+    {
+      "id": 26,
+      "user_id": 1,
+      "action": "CREATE_CHALLENGE",
+      "entity_type": "challenge",
+      "entity_id": 6,
+      "metadata": "{\"title\":\"-\"}",
+      "created_at": "2026-09-21 03:09:02"
+    },
+    {
+      "id": 27,
+      "user_id": 34,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 34,
+      "metadata": null,
+      "created_at": "2026-09-21 03:10:03"
+    },
+    {
+      "id": 28,
+      "user_id": 1,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 1,
+      "metadata": null,
+      "created_at": "2026-09-23 09:09:01"
+    },
+    {
+      "id": 29,
+      "user_id": 22,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 22,
+      "metadata": null,
+      "created_at": "2026-09-23 09:10:00"
+    },
+    {
+      "id": 30,
+      "user_id": 1,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 1,
+      "metadata": null,
+      "created_at": "2026-09-23 09:27:24"
+    },
+    {
+      "id": 31,
+      "user_id": 1,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 1,
+      "metadata": null,
+      "created_at": "2026-09-29 02:39:27"
+    },
+    {
+      "id": 32,
+      "user_id": 1,
+      "action": "CREATE_CHALLENGE",
+      "entity_type": "challenge",
+      "entity_id": 7,
+      "metadata": "{\"title\":\"นำเสนอสินค้า\"}",
+      "created_at": "2026-09-29 02:40:17"
+    },
+    {
+      "id": 33,
+      "user_id": 12,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 12,
+      "metadata": null,
+      "created_at": "2026-09-29 02:40:31"
+    },
+    {
+      "id": 34,
+      "user_id": 1,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 1,
+      "metadata": null,
+      "created_at": "2026-09-29 03:00:11"
+    },
+    {
+      "id": 35,
+      "user_id": 12,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 12,
+      "metadata": null,
+      "created_at": "2026-09-29 03:00:58"
+    },
+    {
+      "id": 36,
+      "user_id": 16,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 16,
+      "metadata": null,
+      "created_at": "2026-09-29 03:01:42"
+    },
+    {
+      "id": 37,
+      "user_id": 12,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 12,
+      "metadata": null,
+      "created_at": "2026-09-29 03:06:21"
+    },
+    {
+      "id": 38,
+      "user_id": 12,
+      "action": "START_CHALLENGE",
+      "entity_type": "challenge",
+      "entity_id": 7,
+      "metadata": null,
+      "created_at": "2026-09-29 03:06:24"
+    },
+    {
+      "id": 39,
+      "user_id": 12,
+      "action": "SUBMIT_LINK",
+      "entity_type": "challenge",
+      "entity_id": 7,
+      "metadata": "{\"canvaLink\":\"https://canva.link/3s8vsbx7onko049\"}",
+      "created_at": "2026-09-29 03:07:02"
+    },
+    {
+      "id": 40,
+      "user_id": 1,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 1,
+      "metadata": null,
+      "created_at": "2026-09-29 03:08:31"
+    },
+    {
+      "id": 41,
+      "user_id": 12,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 12,
+      "metadata": null,
+      "created_at": "2026-09-29 03:08:55"
+    },
+    {
+      "id": 42,
+      "user_id": 16,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 16,
+      "metadata": null,
+      "created_at": "2026-09-29 03:09:11"
+    },
+    {
+      "id": 43,
+      "user_id": 16,
+      "action": "START_CHALLENGE",
+      "entity_type": "challenge",
+      "entity_id": 7,
+      "metadata": null,
+      "created_at": "2026-09-29 03:09:15"
+    },
+    {
+      "id": 44,
+      "user_id": 1,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 1,
+      "metadata": null,
+      "created_at": "2026-09-29 03:54:20"
+    },
+    {
+      "id": 45,
+      "user_id": 12,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 12,
+      "metadata": null,
+      "created_at": "2026-09-29 04:09:02"
+    },
+    {
+      "id": 46,
+      "user_id": 1,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 1,
+      "metadata": null,
+      "created_at": "2026-09-29 04:09:08"
+    },
+    {
+      "id": 47,
+      "user_id": 16,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 16,
+      "metadata": null,
+      "created_at": "2026-09-29 04:18:33"
+    },
+    {
+      "id": 48,
+      "user_id": 1,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 1,
+      "metadata": null,
+      "created_at": "2026-09-29 04:19:39"
+    },
+    {
+      "id": 49,
+      "user_id": 12,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 12,
+      "metadata": null,
+      "created_at": "2026-09-29 04:20:09"
+    },
+    {
+      "id": 50,
+      "user_id": 16,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 16,
+      "metadata": null,
+      "created_at": "2026-09-29 04:37:08"
+    },
+    {
+      "id": 51,
+      "user_id": 16,
+      "action": "SUBMIT_LINK",
+      "entity_type": "challenge",
+      "entity_id": 7,
+      "metadata": "{\"canvaLink\":\"https://canva.link/3s8vsbx7onko049\"}",
+      "created_at": "2026-09-29 04:38:01"
+    },
+    {
+      "id": 52,
+      "user_id": 1,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 1,
+      "metadata": null,
+      "created_at": "2026-09-29 04:38:21"
+    },
+    {
+      "id": 53,
+      "user_id": 12,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 12,
+      "metadata": null,
+      "created_at": "2026-09-29 04:40:21"
+    },
+    {
+      "id": 54,
+      "user_id": 1,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 1,
+      "metadata": null,
+      "created_at": "2026-09-29 07:17:31"
+    },
+    {
+      "id": 55,
+      "user_id": 12,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 12,
+      "metadata": null,
+      "created_at": "2026-09-29 07:18:41"
+    },
+    {
+      "id": 56,
+      "user_id": 1,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 1,
+      "metadata": null,
+      "created_at": "2026-09-29 07:27:53"
+    },
+    {
+      "id": 57,
+      "user_id": 1,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 1,
+      "metadata": null,
+      "created_at": "2026-09-29 07:31:59"
+    },
+    {
+      "id": 58,
+      "user_id": 1,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 1,
+      "metadata": null,
+      "created_at": "2026-09-29 07:32:31"
+    },
+    {
+      "id": 59,
+      "user_id": 1,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 1,
+      "metadata": null,
+      "created_at": "2026-09-29 07:35:02"
+    },
+    {
+      "id": 60,
+      "user_id": 1,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 1,
+      "metadata": null,
+      "created_at": "2026-09-29 07:40:16"
+    },
+    {
+      "id": 61,
+      "user_id": 1,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 1,
+      "metadata": null,
+      "created_at": "2026-09-29 07:45:22"
+    },
+    {
+      "id": 62,
+      "user_id": 1,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 1,
+      "metadata": null,
+      "created_at": "2026-09-29 07:49:13"
+    },
+    {
+      "id": 63,
+      "user_id": 26,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 26,
+      "metadata": null,
+      "created_at": "2026-09-29 07:52:01"
+    },
+    {
+      "id": 64,
+      "user_id": 1,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 1,
+      "metadata": null,
+      "created_at": "2026-09-29 07:53:43"
+    },
+    {
+      "id": 65,
+      "user_id": 1,
+      "action": "CREATE_CHALLENGE",
+      "entity_type": "challenge",
+      "entity_id": 8,
+      "metadata": "{\"title\":\"นำเสนอ\"}",
+      "created_at": "2026-09-29 07:54:04"
+    },
+    {
+      "id": 66,
+      "user_id": 26,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 26,
+      "metadata": null,
+      "created_at": "2026-09-29 07:54:55"
+    },
+    {
+      "id": 67,
+      "user_id": 26,
+      "action": "START_CHALLENGE",
+      "entity_type": "challenge",
+      "entity_id": 8,
+      "metadata": null,
+      "created_at": "2026-09-29 07:54:59"
+    },
+    {
+      "id": 68,
+      "user_id": 26,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 26,
+      "metadata": null,
+      "created_at": "2026-09-29 07:56:13"
+    },
+    {
+      "id": 69,
+      "user_id": 26,
+      "action": "SUBMIT_LINK",
+      "entity_type": "challenge",
+      "entity_id": 8,
+      "metadata": "{\"canvaLink\":\"https://canva.link/6xmuyts23tdggdl\"}",
+      "created_at": "2026-09-29 07:56:35"
+    },
+    {
+      "id": 70,
+      "user_id": 16,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 16,
+      "metadata": null,
+      "created_at": "2026-09-29 07:57:23"
+    },
+    {
+      "id": 71,
+      "user_id": 16,
+      "action": "START_CHALLENGE",
+      "entity_type": "challenge",
+      "entity_id": 8,
+      "metadata": null,
+      "created_at": "2026-09-29 07:57:26"
+    },
+    {
+      "id": 72,
+      "user_id": 16,
+      "action": "SUBMIT_LINK",
+      "entity_type": "challenge",
+      "entity_id": 8,
+      "metadata": "{\"canvaLink\":\"https://canva.link/6xmuyts23tdggdl\"}",
+      "created_at": "2026-09-29 07:57:34"
+    },
+    {
+      "id": 73,
+      "user_id": 1,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 1,
+      "metadata": null,
+      "created_at": "2026-09-29 07:58:23"
+    },
+    {
+      "id": 74,
+      "user_id": 1,
+      "action": "GRADE_SUBMISSION",
+      "entity_type": "student_challenge",
+      "entity_id": 48,
+      "metadata": "{\"score\":100}",
+      "created_at": "2026-09-29 07:59:00"
+    },
+    {
+      "id": 75,
+      "user_id": 1,
+      "action": "GRADE_SUBMISSION",
+      "entity_type": "student_challenge",
+      "entity_id": 49,
+      "metadata": "{\"score\":100}",
+      "created_at": "2026-09-29 07:59:00"
+    },
+    {
+      "id": 76,
+      "user_id": 1,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 1,
+      "metadata": null,
+      "created_at": "2026-09-29 08:00:23"
+    },
+    {
+      "id": 77,
+      "user_id": 1,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 1,
+      "metadata": null,
+      "created_at": "2026-09-29 08:08:39"
+    },
+    {
+      "id": 78,
+      "user_id": 1,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 1,
+      "metadata": null,
+      "created_at": "2026-09-29 08:31:13"
+    },
+    {
+      "id": 79,
+      "user_id": 41,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 41,
+      "metadata": null,
+      "created_at": "2026-09-29 08:33:54"
+    },
+    {
+      "id": 80,
+      "user_id": 1,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 1,
+      "metadata": null,
+      "created_at": "2026-09-29 09:29:29"
+    },
+    {
+      "id": 81,
+      "user_id": 1,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 1,
+      "metadata": null,
+      "created_at": "2026-09-30 02:15:33"
+    },
+    {
+      "id": 82,
+      "user_id": 27,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 27,
+      "metadata": null,
+      "created_at": "2026-09-30 02:17:37"
+    },
+    {
+      "id": 83,
+      "user_id": 1,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 1,
+      "metadata": null,
+      "created_at": "2026-09-30 02:18:16"
+    },
+    {
+      "id": 84,
+      "user_id": 1,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 1,
+      "metadata": null,
+      "created_at": "2026-09-30 02:37:43"
+    },
+    {
+      "id": 85,
+      "user_id": 1,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 1,
+      "metadata": null,
+      "created_at": "2026-09-30 02:43:34"
+    },
+    {
+      "id": 86,
+      "user_id": 1,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 1,
+      "metadata": null,
+      "created_at": "2026-09-30 02:43:39"
+    },
+    {
+      "id": 87,
+      "user_id": 1,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 1,
+      "metadata": null,
+      "created_at": "2026-10-05 10:49:26"
+    },
+    {
+      "id": 88,
+      "user_id": 55,
+      "action": "LOGIN",
+      "entity_type": "user",
+      "entity_id": 55,
+      "metadata": null,
+      "created_at": "2026-10-05T14:08:41.129Z"
+    }
+  ],
+  "student_badges": [],
+  "scores": [],
+  "feedback": [],
+  "research_assessments": [],
+  "research_skills": []
+}
