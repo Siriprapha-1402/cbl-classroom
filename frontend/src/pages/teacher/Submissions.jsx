@@ -35,33 +35,60 @@ export default function Submissions() {
     }).catch(console.error).finally(() => setLoadingCh(false));
   }, []);
 
-  // Auto refresh real-time activity every 8 seconds
-  useEffect(() => {
-    if (!selectedChallenge) return;
-    const t = setInterval(() => {
-      loadActivity(selectedChallenge);
-    }, 8000);
-    return () => clearInterval(t);
-  }, [selectedChallenge]);
-
-  const loadActivity = async (cid) => {
-    const res = await api.get(`/groups/activity/${cid}`).catch(() => null);
-    if (res && res.data) {
-      setActivity(res.data);
-      setLastUpdated(new Date());
-    }
-  };
+  const refreshLive = useCallback(async (cid) => {
+    if (!cid) return;
+    try {
+      const [sRes, aRes] = await Promise.all([
+        api.get(`/challenges/${cid}/submissions`).catch(() => null),
+        api.get(`/groups/activity/${cid}`).catch(() => null)
+      ]);
+      if (sRes?.data?.submissions) {
+        setSubmissions(sRes.data.submissions);
+      }
+      if (aRes?.data) {
+        setActivity(aRes.data);
+        setLastUpdated(new Date());
+      }
+    } catch (e) {}
+  }, []);
 
   const loadData = async (cid) => {
     setSelectedChallenge(cid);
     setLoading(true);
-    const [sRes] = await Promise.all([
-      api.get(`/challenges/${cid}/submissions`).catch(() => ({ data: { submissions: [] } })),
-    ]);
-    setSubmissions(sRes.data.submissions || []);
-    await loadActivity(cid);
+    await refreshLive(cid);
     setLoading(false);
   };
+
+  // Auto refresh real-time activity and submissions every 4 seconds + BroadcastChannel listener
+  useEffect(() => {
+    if (!selectedChallenge) return;
+
+    let bc;
+    try {
+      bc = new BroadcastChannel('cbl_channel');
+      bc.onmessage = () => refreshLive(selectedChallenge);
+    } catch (e) {}
+
+    const handleSync = (e) => {
+      if (!e?.key || e.key === 'cbl_mock_db_clean_v6') {
+        refreshLive(selectedChallenge);
+      }
+    };
+
+    window.addEventListener('storage', handleSync);
+    window.addEventListener('cbl_storage_update', handleSync);
+
+    const t = setInterval(() => {
+      refreshLive(selectedChallenge);
+    }, 4000);
+
+    return () => {
+      if (bc) bc.close();
+      window.removeEventListener('storage', handleSync);
+      window.removeEventListener('cbl_storage_update', handleSync);
+      clearInterval(t);
+    };
+  }, [selectedChallenge, refreshLive]);
 
   const handleOpenGrading = async (s) => {
     if (s.id) {

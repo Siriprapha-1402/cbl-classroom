@@ -8,7 +8,7 @@ export const API_SERVER = import.meta.env.VITE_API_URL
 const api = axios.create({ baseURL: `${API_SERVER}/api` });
 
 api.interceptors.request.use(async (config) => {
-  const token = localStorage.getItem('cbl_token');
+  const token = sessionStorage.getItem('cbl_token') || localStorage.getItem('cbl_token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
 
   // If no backend server URL is configured (e.g. standalone Vercel hosting)
@@ -49,7 +49,12 @@ api.interceptors.response.use(
 
     // Only redirect to login if 401 on protected route (not on /auth/login itself!)
     if (err.response?.status === 401 && !err.config?.url?.includes('/auth/login')) {
-      localStorage.clear();
+      try {
+        sessionStorage.removeItem('cbl_token');
+        sessionStorage.removeItem('cbl_user');
+        localStorage.removeItem('cbl_token');
+        localStorage.removeItem('cbl_user');
+      } catch (e) {}
       window.location.href = '/';
     }
     return Promise.reject(err);

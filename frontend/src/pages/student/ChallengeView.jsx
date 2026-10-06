@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, CheckSquare, ExternalLink, Send, Clock, Users, Link2, Edit3 } from 'lucide-react';
+import { ArrowLeft, CheckSquare, ExternalLink, Send, Clock, Users, Link2, Edit3, Crown, CheckCircle, Award, Star } from 'lucide-react';
 import api from '../../lib/api';
 import { useAuthStore } from '../../store/authStore';
 
@@ -67,9 +67,41 @@ export default function ChallengeView() {
   useEffect(() => {
     load();
     loadGroupCanva();
+
+    let bc;
+    try {
+      bc = new BroadcastChannel('cbl_channel');
+      bc.onmessage = () => {
+        load();
+        loadGroupCanva();
+      };
+    } catch (e) {}
+
+    const handleSync = (e) => {
+      if (!e?.key || e.key === 'cbl_mock_db_clean_v6') {
+        load();
+        loadGroupCanva();
+      }
+    };
+
+    window.addEventListener('storage', handleSync);
+    window.addEventListener('cbl_storage_update', handleSync);
+
+    // Live sync polling every 4 seconds
+    const interval = setInterval(() => {
+      load();
+      loadGroupCanva();
+    }, 4000);
+
+    return () => {
+      if (bc) bc.close();
+      window.removeEventListener('storage', handleSync);
+      window.removeEventListener('cbl_storage_update', handleSync);
+      clearInterval(interval);
+    };
   }, [load, loadGroupCanva]);
 
-  // Heartbeat — ping real-time active working status every 10 seconds
+  // Heartbeat — ping real-time active working status every 8 seconds
   useEffect(() => {
     if (!id) return;
     const ping = () => {
@@ -79,7 +111,7 @@ export default function ChallengeView() {
       }).catch(() => {});
     };
     ping();
-    heartbeatRef.current = setInterval(ping, 10000);
+    heartbeatRef.current = setInterval(ping, 8000);
     return () => clearInterval(heartbeatRef.current);
   }, [id, data?.studentProgress?.id]);
 
@@ -477,15 +509,47 @@ export default function ChallengeView() {
             {activeTab === 'submit' && (
               <div className="space-y-4 max-w-md mx-auto">
                 {isSubmitted ? (
-                  <div className="text-center py-8">
-                    <p className="text-5xl mb-3">🎉</p>
-                    <h3 className="text-xl font-bold text-success mb-2">ส่งงานแล้ว!</h3>
+                  <div className="text-center py-6 space-y-4">
+                    {sc?.status === 'graded' ? (
+                      <div className="p-4 bg-gradient-to-br from-emerald-50 to-green-100/70 border-2 border-emerald-300 rounded-2xl text-left space-y-3 shadow-xs">
+                        <div className="flex items-center justify-between">
+                          <span className="flex items-center gap-1.5 text-xs font-bold text-emerald-800 bg-emerald-200/80 px-2.5 py-1 rounded-full">
+                            <CheckCircle size={14}/> ครูตรวจประเมินเรียบร้อยแล้ว ✅
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            {sc?.graded_at ? new Date(sc.graded_at).toLocaleDateString('th-TH') : ''}
+                          </span>
+                        </div>
+                        <div className="flex items-baseline justify-between border-b border-emerald-200/60 pb-3">
+                          <span className="text-sm font-semibold text-gray-700">คะแนนที่ได้รับ:</span>
+                          <span className="text-3xl font-extrabold text-emerald-700">
+                            {sc?.score ?? 0} <span className="text-sm font-normal text-gray-500">/ {challenge?.max_score || 100} คะแนน</span>
+                          </span>
+                        </div>
+                        {sc?.feedback_comment && (
+                          <div className="p-3 bg-white/90 rounded-xl border border-emerald-200/60 text-xs text-gray-700 space-y-1">
+                            <p className="font-bold text-emerald-900">💬 ข้อเสนอแนะจากครูผู้สอน:</p>
+                            <p className="text-gray-700 leading-relaxed">{sc.feedback_comment}</p>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div>
+                        <p className="text-5xl mb-2">🎉</p>
+                        <h3 className="text-xl font-bold text-success mb-1">ส่งงานแล้ว!</h3>
+                        <p className="text-xs text-gray-500 mb-2">งานของคุณส่งถึงครูเรียบร้อย กำลังรอครูตรวจประเมิน</p>
+                      </div>
+                    )}
                     {groupCanvaInfo?.link && (
                       <a href={groupCanvaInfo.link} target="_blank" rel="noopener noreferrer"
-                        className="text-primary text-sm underline block mb-3">ดูผลงาน Canva →</a>
+                        className="text-primary text-sm font-semibold underline block">
+                        ดูผลงาน Canva ของกลุ่ม →
+                      </a>
                     )}
                     <button onClick={() => navigate(`/student/challenges/${id}/summary`)}
-                      className="btn-primary text-sm px-6 py-2.5">ดูสรุปผลกลุ่ม →</button>
+                      className="btn-primary text-sm px-6 py-2.5">
+                      ดูสรุปผลกลุ่ม →
+                    </button>
                   </div>
                 ) : (
                   <>

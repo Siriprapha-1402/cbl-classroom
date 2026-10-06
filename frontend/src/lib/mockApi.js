@@ -127,15 +127,56 @@ function getUserLevel(xp) {
   return { level: 1, nameTh: 'Beginner', nameEn: 'Beginner', minXp: 0, maxXp: 149 };
 }
 
-function getCurrentUser(store) {
+let currentConfig = null;
+
+function getCurrentUser(store, config) {
+  const cfg = config || currentConfig;
+  const authHeader = cfg?.headers?.Authorization || cfg?.headers?.authorization;
+  if (authHeader && typeof authHeader === 'string') {
+    const token = authHeader.replace(/^Bearer\s+/i, '').trim();
+    if (token.startsWith('mock-token-teacher')) {
+      const teacher = (store.users || []).find(u => u.role === 'teacher') || {
+        id: 1, name: 'ศิริประภา สมบัติคำ', username: 'Teacheradmin', role: 'teacher'
+      };
+      return teacher;
+    }
+    if (token.startsWith('mock-token-student-')) {
+      const match = token.match(/^mock-token-student-(\d+)/);
+      if (match) {
+        const sId = Number(match[1]);
+        const student = (store.users || []).find(u => u.id === sId);
+        if (student) return student;
+      }
+    }
+  }
+
+  // Check sessionStorage (isolated per tab)
+  try {
+    const sessionRaw = sessionStorage.getItem('cbl_user');
+    if (sessionRaw) {
+      const parsed = JSON.parse(sessionRaw);
+      const matched = (store.users || []).find(u => u.id === parsed.id || u.username === parsed.username);
+      if (matched) return matched;
+      return parsed;
+    }
+  } catch (e) {}
+
+  // Check localStorage (cross-tab fallback)
   try {
     const raw = localStorage.getItem('cbl_user');
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      const matched = (store.users || []).find(u => u.id === parsed.id || u.username === parsed.username);
+      if (matched) return matched;
+      return parsed;
+    }
   } catch (e) {}
+
   return store.users[0]; // fallback
 }
 
 export async function handleMockRequest(config) {
+  currentConfig = config;
   const store = getStore();
   const url = (config.url || '').replace(/^[a-z]+:\/\/[^/]+/i, '').replace(/^\/api/, '');
   const method = (config.method || 'get').toLowerCase();
@@ -447,16 +488,83 @@ export async function handleMockRequest(config) {
     return { status: 200, data: { ok: true, completed: true } };
   }
 
-  if (url === '/missions/teacher/toggle' || url === '/missions/teacher/batch') {
+  // 4. Missions progress - Teacher toggle & Batch
+  if (url === '/missions/teacher/toggle' && method === 'post') {
+    const { missionId, studentChallengeId, applyToGroup } = body;
+    const targetSc = (store.student_challenges || []).find(s => s.id === Number(studentChallengeId));
+    if (targetSc) {
+      const studentIds = [targetSc.student_id];
+      if (applyToGroup) {
+        const grp = (store.groups || []).find(g => g.members?.some(m => m.id === targetSc.student_id));
+        if (grp?.members) grp.members.forEach(m => { if (!studentIds.includes(m.id)) studentIds.push(m.id); });
+      }
+      store.mission_progress = store.mission_progress || [];
+      studentIds.forEach(sid => {
+        let sc = (store.student_challenges || []).find(s => s.challenge_id === targetSc.challenge_id && s.student_id === sid);
+        if (!sc) {
+          sc = { id: Date.now() + sid, challenge_id: targetSc.challenge_id, student_id: sid, status: 'in_progress', started_at: new Date().toISOString() };
+          store.student_challenges.push(sc);
+        }
+        const existingIdx = store.mission_progress.findIndex(mp => mp.student_challenge_id === sc.id && mp.mission_id === Number(missionId));
+        if (existingIdx >= 0) {
+          store.mission_progress.splice(existingIdx, 1);
+        } else {
+          store.mission_progress.push({
+            id: Date.now() + sid,
+            student_challenge_id: sc.id,
+            mission_id: Number(missionId),
+            status: 'completed',
+            completed_at: new Date().toISOString()
+          });
+        }
+      });
+      saveStore(store);
+    }
     return { status: 200, data: { ok: true } };
   }
 
-  // 5. Checklists toggle
+  if (url === '/missions/teacher/batch' && method === 'post') {
+    const { checkAll, studentChallengeId, applyToGroup } = body;
+    const targetSc = (store.student_challenges || []).find(s => s.id === Number(studentChallengeId));
+    if (targetSc) {
+      const studentIds = [targetSc.student_id];
+      if (applyToGroup) {
+        const grp = (store.groups || []).find(g => g.members?.some(m => m.id === targetSc.student_id));
+        if (grp?.members) grp.members.forEach(m => { if (!studentIds.includes(m.id)) studentIds.push(m.id); });
+      }
+      const challengeMissions = (store.missions || []).filter(m => m.challenge_id === targetSc.challenge_id);
+      store.mission_progress = store.mission_progress || [];
+      studentIds.forEach(sid => {
+        let sc = (store.student_challenges || []).find(s => s.challenge_id === targetSc.challenge_id && s.student_id === sid);
+        if (!sc) {
+          sc = { id: Date.now() + sid, challenge_id: targetSc.challenge_id, student_id: sid, status: 'in_progress', started_at: new Date().toISOString() };
+          store.student_challenges.push(sc);
+        }
+        store.mission_progress = store.mission_progress.filter(mp => !(mp.student_challenge_id === sc.id && challengeMissions.some(m => m.id === mp.mission_id)));
+        if (checkAll) {
+          challengeMissions.forEach(m => {
+            store.mission_progress.push({
+              id: Date.now() + sid + m.id,
+              student_challenge_id: sc.id,
+              mission_id: m.id,
+              status: 'completed',
+              completed_at: new Date().toISOString()
+            });
+          });
+        }
+      });
+      saveStore(store);
+    }
+    return { status: 200, data: { ok: true } };
+  }
+
+  // 5. Checklists toggle - Teacher toggle & Batch
   const clToggleMatch = url.match(/^\/checklists\/(\d+)\/toggle$/);
   if (clToggleMatch && method === 'post') {
     const clid = Number(clToggleMatch[1]);
     const user = getCurrentUser(store);
     const sc = store.student_challenges.find(s => s.student_id === user.id) || { id: 1 };
+    store.checklist_completions = store.checklist_completions || [];
     const idx = store.checklist_completions.findIndex(c => c.checklist_item_id === clid && c.student_challenge_id === sc.id);
     if (idx >= 0) {
       store.checklist_completions.splice(idx, 1);
@@ -473,7 +581,72 @@ export async function handleMockRequest(config) {
     return { status: 200, data: { ok: true } };
   }
 
-  if (url === '/checklists/teacher/toggle' || url === '/checklists/teacher/batch') {
+  if (url === '/checklists/teacher/toggle' && method === 'post') {
+    const { itemId, studentChallengeId, applyToGroup } = body;
+    const targetSc = (store.student_challenges || []).find(s => s.id === Number(studentChallengeId));
+    if (targetSc) {
+      const studentIds = [targetSc.student_id];
+      if (applyToGroup) {
+        const grp = (store.groups || []).find(g => g.members?.some(m => m.id === targetSc.student_id));
+        if (grp?.members) grp.members.forEach(m => { if (!studentIds.includes(m.id)) studentIds.push(m.id); });
+      }
+      store.checklist_completions = store.checklist_completions || [];
+      studentIds.forEach(sid => {
+        let sc = (store.student_challenges || []).find(s => s.challenge_id === targetSc.challenge_id && s.student_id === sid);
+        if (!sc) {
+          sc = { id: Date.now() + sid, challenge_id: targetSc.challenge_id, student_id: sid, status: 'in_progress', started_at: new Date().toISOString() };
+          store.student_challenges.push(sc);
+        }
+        const existingIdx = store.checklist_completions.findIndex(cc => cc.student_challenge_id === sc.id && cc.checklist_item_id === Number(itemId));
+        if (existingIdx >= 0) {
+          store.checklist_completions.splice(existingIdx, 1);
+        } else {
+          store.checklist_completions.push({
+            id: Date.now() + sid,
+            student_challenge_id: sc.id,
+            checklist_item_id: Number(itemId),
+            checked: 1,
+            completed_at: new Date().toISOString()
+          });
+        }
+      });
+      saveStore(store);
+    }
+    return { status: 200, data: { ok: true } };
+  }
+
+  if (url === '/checklists/teacher/batch' && method === 'post') {
+    const { checkAll, studentChallengeId, applyToGroup } = body;
+    const targetSc = (store.student_challenges || []).find(s => s.id === Number(studentChallengeId));
+    if (targetSc) {
+      const studentIds = [targetSc.student_id];
+      if (applyToGroup) {
+        const grp = (store.groups || []).find(g => g.members?.some(m => m.id === targetSc.student_id));
+        if (grp?.members) grp.members.forEach(m => { if (!studentIds.includes(m.id)) studentIds.push(m.id); });
+      }
+      const challengeChecklist = (store.checklist_items || []).filter(ci => ci.challenge_id === targetSc.challenge_id);
+      store.checklist_completions = store.checklist_completions || [];
+      studentIds.forEach(sid => {
+        let sc = (store.student_challenges || []).find(s => s.challenge_id === targetSc.challenge_id && s.student_id === sid);
+        if (!sc) {
+          sc = { id: Date.now() + sid, challenge_id: targetSc.challenge_id, student_id: sid, status: 'in_progress', started_at: new Date().toISOString() };
+          store.student_challenges.push(sc);
+        }
+        store.checklist_completions = store.checklist_completions.filter(cc => !(cc.student_challenge_id === sc.id && challengeChecklist.some(ci => ci.id === cc.checklist_item_id)));
+        if (checkAll) {
+          challengeChecklist.forEach(ci => {
+            store.checklist_completions.push({
+              id: Date.now() + sid + ci.id,
+              student_challenge_id: sc.id,
+              checklist_item_id: ci.id,
+              checked: 1,
+              completed_at: new Date().toISOString()
+            });
+          });
+        }
+      });
+      saveStore(store);
+    }
     return { status: 200, data: { ok: true } };
   }
 
@@ -507,6 +680,15 @@ export async function handleMockRequest(config) {
     const checklist = (store.checklist_items || []).filter(ci => ci.challenge_id === challenge?.id);
 
     if (method === 'get') {
+      const mappedChecklist = checklist.map(ci => ({
+        ...ci,
+        checked: (store.checklist_completions || []).some(cc => cc.student_challenge_id === sc?.id && cc.checklist_item_id === ci.id && cc.checked) ? 1 : 0
+      }));
+      const mappedMissions = missions.map(m => ({
+        ...m,
+        progress_status: (store.mission_progress || []).some(mp => mp.student_challenge_id === sc?.id && mp.mission_id === m.id) ? 'completed' : 'in_progress'
+      }));
+      const grp = (store.groups || []).find(g => g.members?.some(m => m.id === student?.id || m.student_code === student?.username || m.student_code === student?.student_id));
       return {
         status: 200,
         data: {
@@ -523,11 +705,13 @@ export async function handleMockRequest(config) {
             id: student?.id,
             name: student?.name,
             username: student?.username,
-            student_code: student?.student_id || student?.username
+            student_code: student?.student_id || student?.username,
+            group_id: grp?.id || null,
+            group_name: grp?.name || null
           },
           grade: sc?.score !== undefined && sc?.score !== null ? { score: sc.score, comment: sc.feedback_comment || '' } : null,
-          checklist,
-          missions
+          checklist: mappedChecklist,
+          missions: mappedMissions
         }
       };
     }
@@ -537,6 +721,34 @@ export async function handleMockRequest(config) {
         sc.status = 'graded';
         sc.feedback_comment = body.comment || '';
         sc.graded_at = new Date().toISOString();
+
+        if (body.applyToGroup) {
+          const grp = (store.groups || []).find(g => g.members?.some(m => m.id === sc.student_id));
+          if (grp?.members) {
+            grp.members.forEach(m => {
+              if (m.id !== sc.student_id) {
+                let msc = (store.student_challenges || []).find(s => s.challenge_id === sc.challenge_id && s.student_id === m.id);
+                if (!msc) {
+                  msc = {
+                    id: Date.now() + m.id,
+                    student_id: m.id,
+                    challenge_id: sc.challenge_id,
+                    status: 'graded',
+                    started_at: sc.started_at || new Date().toISOString(),
+                    submitted_at: sc.submitted_at || new Date().toISOString(),
+                    canva_link: sc.canva_link || ''
+                  };
+                  store.student_challenges.push(msc);
+                }
+                msc.score = Number(body.score);
+                msc.status = 'graded';
+                msc.feedback_comment = body.comment || '';
+                msc.graded_at = new Date().toISOString();
+                if (sc.canva_link && !msc.canva_link) msc.canva_link = sc.canva_link;
+              }
+            });
+          }
+        }
         saveStore(store);
       }
       return { status: 200, data: { ok: true, message: 'บันทึกคะแนนและ Feedback เรียบร้อย' } };

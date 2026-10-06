@@ -66,6 +66,25 @@ export default function TeacherGroups() {
 
   useEffect(() => {
     load();
+
+    let bc;
+    try {
+      bc = new BroadcastChannel('cbl_channel');
+      bc.onmessage = () => load(true);
+    } catch (e) {}
+
+    const handleSync = (e) => {
+      if (!e?.key || e.key === 'cbl_mock_db_clean_v6') load(true);
+    };
+
+    window.addEventListener('storage', handleSync);
+    window.addEventListener('cbl_storage_update', handleSync);
+
+    return () => {
+      if (bc) bc.close();
+      window.removeEventListener('storage', handleSync);
+      window.removeEventListener('cbl_storage_update', handleSync);
+    };
   }, []);
 
   // Compute student assignments

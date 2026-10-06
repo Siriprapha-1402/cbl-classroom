@@ -370,11 +370,7 @@ router.get('/activity/:challengeId', (req, res) => {
 // POST /api/groups/heartbeat — นักเรียน ping ว่ากำลังทำงานอยู่
 router.post('/heartbeat', requireRole('student'), (req, res) => {
   const { challengeId, studentChallengeId } = req.body;
-  let scId = Number(studentChallengeId) || 0;
-  if (!scId) {
-    const scRow = db.prepare('SELECT id FROM student_challenges WHERE student_id = ? AND challenge_id = ?').get(req.user.id, challengeId);
-    scId = scRow?.id || 0;
-  }
+  if (!challengeId) return res.status(400).json({ error: 'Missing challengeId' });
 
   const classId = getClassId(req.user);
   const groupRow = classId ? db.prepare(`
@@ -382,15 +378,35 @@ router.post('/heartbeat', requireRole('student'), (req, res) => {
     WHERE gm.student_id = ? AND g.class_id = ?
   `).get(req.user.id, classId) : null;
 
+  let scId = Number(studentChallengeId) || 0;
+  if (!scId) {
+    let scRow = db.prepare('SELECT id FROM student_challenges WHERE student_id = ? AND challenge_id = ?').get(req.user.id, challengeId);
+    if (!scRow) {
+      try {
+        const now = new Date().toISOString();
+        const insertSc = db.prepare("INSERT INTO student_challenges (student_id, challenge_id, group_id, status, started_at) VALUES (?, ?, ?, 'in_progress', ?)").run(
+          req.user.id, challengeId, groupRow?.id || null, now
+        );
+        scId = insertSc.lastInsertRowid;
+      } catch (e) {
+        scId = 0;
+      }
+    } else {
+      scId = scRow.id;
+    }
+  }
+
   const existing = db.prepare('SELECT id FROM challenge_activity WHERE student_id = ? AND challenge_id = ?').get(req.user.id, challengeId);
   if (existing) {
-    db.prepare("UPDATE challenge_activity SET last_seen = datetime('now'), is_active = 1, group_id = ? WHERE id = ?").run(groupRow?.id || null, existing.id);
+    db.prepare("UPDATE challenge_activity SET last_seen = datetime('now'), is_active = 1, group_id = ?, student_challenge_id = COALESCE(NULLIF(?, 0), student_challenge_id) WHERE id = ?").run(
+      groupRow?.id || null, scId, existing.id
+    );
   } else {
     db.prepare('INSERT INTO challenge_activity (student_challenge_id, student_id, challenge_id, group_id, is_active, joined_at, last_seen) VALUES (?, ?, ?, ?, 1, datetime(\'now\'), datetime(\'now\'))').run(
-      scId, req.user.id, challengeId, groupRow?.id || null
+      scId || 0, req.user.id, challengeId, groupRow?.id || null
     );
   }
-  res.json({ ok: true });
+  res.json({ ok: true, scId });
 });
 
 // GET /api/groups/summary/:challengeId — สรุปผลรายกลุ่มเมื่อทำเสร็จ

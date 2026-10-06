@@ -58,7 +58,15 @@ router.get('/:id', (req, res) => {
     if (sc) {
       const missionProgress = db.prepare('SELECT * FROM mission_progress WHERE student_challenge_id = ?').all(sc.id);
       const checklistCompletions = db.prepare('SELECT * FROM checklist_completions WHERE student_challenge_id = ?').all(sc.id);
-      studentProgress = { ...sc, missionProgress, checklistCompletions };
+      const scoreRow = db.prepare('SELECT score FROM scores WHERE student_challenge_id = ?').get(sc.id);
+      const feedbackRow = db.prepare('SELECT comment FROM feedback WHERE student_challenge_id = ?').get(sc.id);
+      studentProgress = { 
+        ...sc, 
+        score: scoreRow?.score ?? null, 
+        feedback_comment: feedbackRow?.comment ?? null, 
+        missionProgress, 
+        checklistCompletions 
+      };
     }
   }
 

@@ -13,7 +13,7 @@ export default function GroupSummary() {
   const [myGroupId, setMyGroupId] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const loadData = React.useCallback(() => {
     Promise.all([
       api.get(`/groups/summary/${id}`),
       api.get(`/challenges/${id}`),
@@ -24,6 +24,31 @@ export default function GroupSummary() {
       setMyGroupId(gRes.data.myGroup?.id || null);
     }).catch(console.error).finally(() => setLoading(false));
   }, [id]);
+
+  useEffect(() => {
+    loadData();
+
+    let bc;
+    try {
+      bc = new BroadcastChannel('cbl_channel');
+      bc.onmessage = () => loadData();
+    } catch (e) {}
+
+    const handleSync = (e) => {
+      if (!e?.key || e.key === 'cbl_mock_db_clean_v6') loadData();
+    };
+
+    window.addEventListener('storage', handleSync);
+    window.addEventListener('cbl_storage_update', handleSync);
+    const interval = setInterval(loadData, 4000);
+
+    return () => {
+      if (bc) bc.close();
+      window.removeEventListener('storage', handleSync);
+      window.removeEventListener('cbl_storage_update', handleSync);
+      clearInterval(interval);
+    };
+  }, [loadData]);
 
   if (loading) return <div className="flex justify-center items-center h-64"><div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"/></div>;
 

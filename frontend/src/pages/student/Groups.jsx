@@ -23,7 +23,30 @@ export default function StudentGroups() {
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { 
+    load(); 
+
+    let bc;
+    try {
+      bc = new BroadcastChannel('cbl_channel');
+      bc.onmessage = () => load();
+    } catch (e) {}
+
+    const handleSync = (e) => {
+      if (!e?.key || e.key === 'cbl_mock_db_clean_v6') load();
+    };
+
+    window.addEventListener('storage', handleSync);
+    window.addEventListener('cbl_storage_update', handleSync);
+    const interval = setInterval(load, 4000);
+
+    return () => {
+      if (bc) bc.close();
+      window.removeEventListener('storage', handleSync);
+      window.removeEventListener('cbl_storage_update', handleSync);
+      clearInterval(interval);
+    };
+  }, []);
 
   const handleCreate = async () => {
     if (!newName.trim()) return;

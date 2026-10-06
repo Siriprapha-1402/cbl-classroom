@@ -11,39 +11,66 @@ export default function Dashboard() {
   const [liveActivity, setLiveActivity] = useState({ activeCount: 0, inProgressCount: 0, notStartedCount: 0, submittedCount: 0 });
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    Promise.all([
-      api.get('/challenges').catch(() => ({ data: { challenges: [] } })),
-      api.get('/analytics/class').catch(() => ({ data: {} })),
-      api.get('/students').catch(() => ({ data: { students: [] } }))
-    ])
-      .then(async ([cRes, aRes, sRes]) => {
-        const cList = cRes.data?.challenges || [];
-        const sList = sRes.data?.students || [];
-        const aData = aRes.data || {};
-        const aSummary = aData.summary || {};
+  const loadDashboardData = React.useCallback(async () => {
+    try {
+      const [cRes, aRes, sRes] = await Promise.all([
+        api.get('/challenges').catch(() => ({ data: { challenges: [] } })),
+        api.get('/analytics/class').catch(() => ({ data: {} })),
+        api.get('/students').catch(() => ({ data: { students: [] } }))
+      ]);
+      const cList = cRes.data?.challenges || [];
+      const sList = sRes.data?.students || [];
+      const aData = aRes.data || {};
+      const aSummary = aData.summary || {};
 
-        const studentCount = sList.length || aSummary.totalStudents || aData.totalStudents || 43;
-        setTotalStudents(studentCount);
-        setChallenges(cList);
+      const studentCount = sList.length || aSummary.totalStudents || aData.totalStudents || 43;
+      setTotalStudents(studentCount);
+      setChallenges(cList);
 
-        setSummary({
-          totalStudents: studentCount,
-          submitted: aSummary.submitted || 0,
-          onTime: aSummary.onTime || 0,
-          late: aSummary.late || 0,
-          notStarted: aSummary.notStarted !== undefined ? aSummary.notStarted : (cList.length > 0 ? Math.max(0, studentCount * cList.length - (aSummary.submitted || 0)) : 0),
-        });
+      setSummary({
+        totalStudents: studentCount,
+        submitted: aSummary.submitted || 0,
+        onTime: aSummary.onTime || 0,
+        late: aSummary.late || 0,
+        notStarted: aSummary.notStarted !== undefined ? aSummary.notStarted : (cList.length > 0 ? Math.max(0, studentCount * cList.length - (aSummary.submitted || 0)) : 0),
+      });
 
-        // Load live activity if there's any challenge
-        if (cList.length > 0) {
-          const actRes = await api.get(`/groups/activity/${cList[0].id}`).catch(() => null);
-          if (actRes?.data) setLiveActivity(actRes.data);
-        }
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
+      // Load live activity if there's any challenge
+      if (cList.length > 0) {
+        const actRes = await api.get(`/groups/activity/${cList[0].id}`).catch(() => null);
+        if (actRes?.data) setLiveActivity(actRes.data);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    loadDashboardData();
+
+    let bc;
+    try {
+      bc = new BroadcastChannel('cbl_channel');
+      bc.onmessage = () => loadDashboardData();
+    } catch (e) {}
+
+    const handleSync = (e) => {
+      if (!e?.key || e.key === 'cbl_mock_db_clean_v6') loadDashboardData();
+    };
+
+    window.addEventListener('storage', handleSync);
+    window.addEventListener('cbl_storage_update', handleSync);
+    const interval = setInterval(loadDashboardData, 5000);
+
+    return () => {
+      if (bc) bc.close();
+      window.removeEventListener('storage', handleSync);
+      window.removeEventListener('cbl_storage_update', handleSync);
+      clearInterval(interval);
+    };
+  }, [loadDashboardData]);
 
   if (loading) return <div className="flex justify-center items-center h-64"><div className="animate-spin rounded-full h-10 w-10 border-4 border-primary border-t-transparent"/></div>;
 
