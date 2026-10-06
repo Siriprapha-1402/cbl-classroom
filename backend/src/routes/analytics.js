@@ -92,6 +92,7 @@ router.get('/class', (req, res) => {
   });
 
   res.json({
+    totalStudents,
     summary: { totalStudents, submitted, onTime, late, inProgress, notStarted },
     challengeStats,
     performance: { avgScore, maxScore, minScore },

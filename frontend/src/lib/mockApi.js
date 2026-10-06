@@ -1105,16 +1105,69 @@ export async function handleMockRequest(config) {
 
   // 10. Analytics
   if (url === '/analytics/class') {
-    const activeChal = (store.challenges || []).filter(c => c.status === 'active').length;
+    const students = (store.users || []).filter(u => u.role === 'student');
+    const totalStudents = students.length || 43;
+    const challenges = (store.challenges || []).filter(c => c.status === 'active');
+    
+    let submitted = 0;
+    let onTime = 0;
+    let late = 0;
+    let inProgress = 0;
+    let notStarted = 0;
+
+    challenges.forEach(c => {
+      const rows = (store.student_challenges || []).filter(sc => sc.challenge_id === c.id);
+      rows.forEach(r => {
+        if (r.status === 'graded' || r.status === 'submitted') {
+          submitted++;
+          if (r.is_on_time === 1 || !r.is_late) onTime++;
+          else late++;
+        } else if (r.status === 'in_progress') {
+          inProgress++;
+        }
+      });
+      notStarted += Math.max(0, totalStudents - rows.length);
+    });
+
+    const summary = {
+      totalStudents,
+      submitted,
+      onTime,
+      late,
+      inProgress,
+      notStarted: challenges.length > 0 ? notStarted : 0
+    };
+
     return {
       status: 200,
       data: {
-        totalStudents: 43,
-        activeChallenges: activeChal,
-        submissionRate: 0,
+        totalStudents,
+        summary,
+        activeChallenges: challenges.length,
+        submissionRate: challenges.length > 0 ? Math.round((submitted / (totalStudents * challenges.length)) * 100) : 0,
         avgScore: 0,
+        performance: { avgScore: 0, maxScore: 0, minScore: 0 },
+        reflectionStats: { avgSelfScore: 5.0, totalReflections: 0 },
+        dailySubmissions: [],
+        challengeStats: (store.challenges || []).map(c => {
+          const rows = (store.student_challenges || []).filter(sc => sc.challenge_id === c.id);
+          const submittedCount = rows.filter(r => ['submitted', 'graded'].includes(r.status)).length;
+          const onTimeCount = rows.filter(r => r.is_on_time === 1 || !r.is_late).length;
+          const lateCount = rows.filter(r => r.is_on_time === 0 || r.is_late).length;
+          return {
+            id: c.id,
+            title: c.title,
+            difficulty: c.difficulty,
+            totalEnrolled: totalStudents,
+            submittedCount,
+            onTimeCount,
+            lateCount,
+            avgScore: 0,
+            notStarted: Math.max(0, totalStudents - rows.length)
+          };
+        }),
         xpDistribution: [
-          { name: 'Beginner', count: 43 },
+          { name: 'Beginner', count: totalStudents },
           { name: 'Explorer', count: 0 },
           { name: 'Creator', count: 0 },
           { name: 'Problem Solver', count: 0 },

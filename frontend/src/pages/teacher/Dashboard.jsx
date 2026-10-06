@@ -7,20 +7,41 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [challenges, setChallenges] = useState([]);
   const [summary, setSummary] = useState({});
+  const [totalStudents, setTotalStudents] = useState(43);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([api.get('/challenges'), api.get('/analytics/class')])
-      .then(([cRes, aRes]) => {
-        setChallenges(cRes.data.challenges || []);
-        setSummary(aRes.data.summary || {});
-      }).catch(console.error).finally(() => setLoading(false));
+    Promise.all([
+      api.get('/challenges').catch(() => ({ data: { challenges: [] } })),
+      api.get('/analytics/class').catch(() => ({ data: {} })),
+      api.get('/students').catch(() => ({ data: { students: [] } }))
+    ])
+      .then(([cRes, aRes, sRes]) => {
+        const cList = cRes.data?.challenges || [];
+        const sList = sRes.data?.students || [];
+        const aData = aRes.data || {};
+        const aSummary = aData.summary || {};
+
+        const studentCount = sList.length || aSummary.totalStudents || aData.totalStudents || 43;
+        setTotalStudents(studentCount);
+        setChallenges(cList);
+
+        setSummary({
+          totalStudents: studentCount,
+          submitted: aSummary.submitted || 0,
+          onTime: aSummary.onTime || 0,
+          late: aSummary.late || 0,
+          notStarted: aSummary.notStarted !== undefined ? aSummary.notStarted : (cList.length > 0 ? Math.max(0, studentCount * cList.length - (aSummary.submitted || 0)) : 0),
+        });
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
   }, []);
 
   if (loading) return <div className="flex justify-center items-center h-64"><div className="animate-spin rounded-full h-10 w-10 border-4 border-primary border-t-transparent"/></div>;
 
   const cards = [
-    { label: 'นักเรียนทั้งหมด', value: summary.totalStudents || 0, icon: '👨‍🎓', color: 'bg-blue-50 border-blue-200 text-blue-700' },
+    { label: 'นักเรียนทั้งหมด', value: totalStudents, icon: '👨‍🎓', color: 'bg-blue-50 border-blue-200 text-blue-700' },
     { label: 'ส่งงานแล้ว',       value: summary.submitted || 0,      icon: '✅', color: 'bg-green-50 border-green-200 text-green-700' },
     { label: 'ยังไม่ส่ง',        value: summary.notStarted || 0,     icon: '⏳', color: 'bg-orange-50 border-orange-200 text-orange-700' },
     { label: 'ล่าช้า',           value: summary.late || 0,           icon: '⚠️', color: 'bg-red-50 border-red-200 text-red-700' },
@@ -31,7 +52,7 @@ export default function Dashboard() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">ภาพรวมห้องเรียน</h1>
-          <p className="text-gray-400 text-sm mt-0.5">ปวช.1/1 · วิชาโปรแกรมนำเสนอ</p>
+          <p className="text-gray-400 text-sm mt-0.5">ปวช.1/1 · นักเรียนทั้งหมด {totalStudents} คน · วิชาโปรแกรมนำเสนอ</p>
         </div>
         <button onClick={() => navigate('/teacher/challenges/create')}
           className="btn-primary flex items-center gap-2 text-sm">
@@ -69,7 +90,7 @@ export default function Dashboard() {
           <div className="space-y-3">
             {challenges.map(c => {
               const submitted = c.submitted_count || 0;
-              const total = summary.totalStudents || 0;
+              const total = totalStudents || summary.totalStudents || 43;
               const pct = total > 0 ? Math.round((submitted / total) * 100) : 0;
               return (
                 <div key={c.id} onClick={() => navigate('/teacher/submissions')}
