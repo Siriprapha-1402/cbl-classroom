@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ExternalLink, Crown, CheckCircle, Clock, Users } from 'lucide-react';
 import api from '../../lib/api';
 import { useAuthStore } from '../../store/authStore';
+import { resolveStudentGroup } from '../../lib/groupHelper';
 
 export default function GroupSummary() {
   const { id } = useParams(); // challenge id
@@ -21,9 +22,10 @@ export default function GroupSummary() {
     ]).then(([sRes, cRes, gRes]) => {
       setGroups(sRes.data.groups || []);
       setChallenge(cRes.data.challenge);
-      setMyGroupId(gRes.data.myGroup?.id || null);
+      const myGrp = resolveStudentGroup(gRes.data, user);
+      setMyGroupId(myGrp?.id || null);
     }).catch(console.error).finally(() => setLoading(false));
-  }, [id]);
+  }, [id, user]);
 
   useEffect(() => {
     loadData();

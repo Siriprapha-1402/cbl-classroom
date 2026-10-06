@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronRight, Clock } from 'lucide-react';
 import api from '../../lib/api';
 import { useAuthStore } from '../../store/authStore';
+import { resolveStudentGroup } from '../../lib/groupHelper';
 
 export default function Home() {
   const { user } = useAuthStore();
@@ -14,15 +15,16 @@ export default function Home() {
   const loadData = React.useCallback(() => {
     Promise.all([
       api.get('/challenges').catch(() => ({ data: { challenges: [] } })),
-      api.get('/groups').catch(() => ({ data: { myGroup: null } }))
+      api.get('/groups').catch(() => ({ data: { groups: [], myGroup: null } }))
     ])
       .then(([cRes, gRes]) => {
         setChallenges(cRes.data.challenges || []);
-        setMyGroup(gRes.data.myGroup || null);
+        const group = resolveStudentGroup(gRes.data, user);
+        setMyGroup(group);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     loadData();

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, CheckSquare, ExternalLink, Send, Clock, Users, Link2, Edit3, Crown, CheckCircle, Award, Star } from 'lucide-react';
 import api from '../../lib/api';
 import { useAuthStore } from '../../store/authStore';
+import { resolveStudentGroup } from '../../lib/groupHelper';
 
 function Timer({ deadline }) {
   const [timeLeft, setTimeLeft] = useState('');
@@ -60,9 +61,10 @@ export default function ChallengeView() {
       api.get('/groups'),
     ]);
     setData(cRes.data);
-    setMyGroup(gRes.data.myGroup || null);
+    const resolvedGrp = resolveStudentGroup(gRes.data, user);
+    setMyGroup(resolvedGrp);
     setLoading(false);
-  }, [id]);
+  }, [id, user]);
 
   useEffect(() => {
     load();

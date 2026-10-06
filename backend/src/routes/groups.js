@@ -9,10 +9,10 @@ router.use(authenticate);
 function getClassId(user) {
   if (user.role === 'teacher') {
     const r = db.prepare('SELECT id FROM classes WHERE teacher_id = ?').get(user.id);
-    return r?.id || null;
+    return r?.id || 1;
   } else {
     const r = db.prepare('SELECT class_id FROM class_enrollments WHERE student_id = ?').get(user.id);
-    return r?.class_id || null;
+    return r?.class_id || 1;
   }
 }
 
@@ -39,7 +39,19 @@ router.get('/', (req, res) => {
   // ถ้าเป็นนักเรียน บอกว่าตัวเองอยู่กลุ่มไหน
   let myGroup = null;
   if (req.user.role === 'student') {
-    myGroup = groups.find(g => g.members.some(m => m.id === req.user.id)) || null;
+    const uid = String(req.user.id || '').trim();
+    const ucode = String(req.user.student_id || req.user.username || '').trim().toLowerCase();
+    const uname = String(req.user.name || '').trim().toLowerCase();
+
+    myGroup = groups.find(g => Array.isArray(g.members) && g.members.some(m => {
+      const mid = String(m.id || '').trim();
+      const mcode = String(m.student_code || m.username || m.student_id || '').trim().toLowerCase();
+      const mname = String(m.name || '').trim().toLowerCase();
+
+      return (uid && mid && uid === mid) ||
+             (ucode && mcode && ucode === mcode) ||
+             (uname && mname && (uname === mname || uname.includes(mname) || mname.includes(uname)));
+    })) || null;
   }
 
   res.json({ groups, myGroup });

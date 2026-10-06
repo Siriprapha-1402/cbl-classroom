@@ -148,6 +148,22 @@ function getCurrentUser(store, config) {
         if (student) return student;
       }
     }
+    // Attempt decoding JWT payload
+    try {
+      const parts = token.split('.');
+      if (parts.length === 3) {
+        const payloadStr = decodeURIComponent(escape(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/'))));
+        const payload = JSON.parse(payloadStr);
+        if (payload?.id || payload?.username) {
+          const matched = (store.users || []).find(u => 
+            (payload.id && u.id === payload.id) || 
+            (payload.username && (u.username === payload.username || u.student_id === payload.username))
+          );
+          if (matched) return matched;
+          return payload;
+        }
+      }
+    } catch (e) {}
   }
 
   // Check sessionStorage (isolated per tab)
@@ -155,7 +171,11 @@ function getCurrentUser(store, config) {
     const sessionRaw = sessionStorage.getItem('cbl_user');
     if (sessionRaw) {
       const parsed = JSON.parse(sessionRaw);
-      const matched = (store.users || []).find(u => u.id === parsed.id || u.username === parsed.username);
+      const matched = (store.users || []).find(u => 
+        u.id === parsed.id || 
+        u.username === parsed.username || 
+        (parsed.student_id && (u.student_id === parsed.student_id || u.username === parsed.student_id))
+      );
       if (matched) return matched;
       return parsed;
     }
@@ -166,13 +186,17 @@ function getCurrentUser(store, config) {
     const raw = localStorage.getItem('cbl_user');
     if (raw) {
       const parsed = JSON.parse(raw);
-      const matched = (store.users || []).find(u => u.id === parsed.id || u.username === parsed.username);
+      const matched = (store.users || []).find(u => 
+        u.id === parsed.id || 
+        u.username === parsed.username || 
+        (parsed.student_id && (u.student_id === parsed.student_id || u.username === parsed.student_id))
+      );
       if (matched) return matched;
       return parsed;
     }
   } catch (e) {}
 
-  return store.users[0]; // fallback
+  return null;
 }
 
 export async function handleMockRequest(config) {
@@ -819,14 +843,26 @@ export async function handleMockRequest(config) {
 
   // 8. Groups Management
   if (url === '/groups' && method === 'get') {
-    const currentUser = getCurrentUser(store);
+    const currentUser = getCurrentUser(store, config);
     const groups = (store.groups || []).map(g => ({
       ...g,
       member_count: g.members?.length || 0
     }));
     let myGroup = null;
-    if (currentUser?.role === 'student') {
-      myGroup = groups.find(g => g.members?.some(m => m.id === currentUser.id || m.student_code === currentUser.username || m.student_code === currentUser.student_id)) || null;
+    if (currentUser) {
+      const uid = String(currentUser.id || '').trim();
+      const ucode = String(currentUser.student_id || currentUser.username || '').trim().toLowerCase();
+      const uname = String(currentUser.name || '').trim().toLowerCase();
+
+      myGroup = groups.find(g => Array.isArray(g.members) && g.members.some(m => {
+        const mid = String(m.id || '').trim();
+        const mcode = String(m.student_code || m.username || m.student_id || '').trim().toLowerCase();
+        const mname = String(m.name || '').trim().toLowerCase();
+
+        return (uid && mid && uid === mid) ||
+               (ucode && mcode && ucode === mcode) ||
+               (uname && mname && (uname === mname || uname.includes(mname) || mname.includes(uname)));
+      })) || null;
     }
     return { status: 200, data: { groups, myGroup } };
   }

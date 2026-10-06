@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Users, Plus, LogIn, LogOut, Crown, RefreshCw } from 'lucide-react';
 import api from '../../lib/api';
 import { useAuthStore } from '../../store/authStore';
+import { resolveStudentGroup } from '../../lib/groupHelper';
 
 export default function StudentGroups() {
   const { user } = useAuthStore();
@@ -16,9 +17,10 @@ export default function StudentGroups() {
 
   const load = async () => {
     const res = await api.get('/groups').catch(console.error);
-    if (res) {
+    if (res?.data) {
       setGroups(res.data.groups || []);
-      setMyGroup(res.data.myGroup || null);
+      const group = resolveStudentGroup(res.data, user);
+      setMyGroup(group);
     }
     setLoading(false);
   };
@@ -46,7 +48,7 @@ export default function StudentGroups() {
       window.removeEventListener('cbl_storage_update', handleSync);
       clearInterval(interval);
     };
-  }, []);
+  }, [user]);
 
   const handleCreate = async () => {
     if (!newName.trim()) return;
