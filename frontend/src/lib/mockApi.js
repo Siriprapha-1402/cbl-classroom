@@ -1,6 +1,6 @@
 import initialData from './initialData.json';
 
-const STORAGE_KEY = 'cbl_mock_db_clean_v5';
+const STORAGE_KEY = 'cbl_mock_db_clean_v6';
 
 // Rubric definition
 export const RUBRIC_STRUCTURE = {
@@ -72,7 +72,7 @@ function getStore() {
   } catch (e) {
     console.warn('Failed to parse mock store from localStorage', e);
   }
-  // Initialize with initialData (Clean Start)
+  // Initialize with clean data from initialData.json
   const store = {
     users: initialData.users || [],
     classes: initialData.classes || [],
@@ -94,6 +94,9 @@ function getStore() {
     feedback: initialData.feedback || [],
     research_assessments: initialData.research_assessments || [],
     research_skills: initialData.research_skills || [],
+    behavior_map: {},
+    behavior_notes: {},
+    skill_assessments: {},
     canva_links: {}
   };
   saveStore(store);
@@ -172,10 +175,10 @@ export async function handleMockRequest(config) {
       }
     }
 
-    // Student check
+    // Student check (43 students from Google Sheet)
     const student = store.users.find(u => u.role === 'student' && (u.username === username || u.student_id === username));
     if (student) {
-      // รหัสผ่านเข้าระบบของนักเรียนคือรหัสนักเรียน
+      // รหัสผ่านเข้าระบบของนักเรียนคือรหัสนักเรียน 11 หลัก
       if (password === student.username || password === student.student_id) {
         const token = 'mock-token-student-' + student.id + '-' + Date.now();
         return {
@@ -540,15 +543,24 @@ export async function handleMockRequest(config) {
     }
   }
 
-  // 7. Students List for Teacher
+  // 7. Students List for Teacher (All 43 students from Google Sheet in order)
   if (url === '/students' && method === 'get') {
     const students = store.users
       .filter(u => u.role === 'student')
       .map((s, idx) => {
         const scs = (store.student_challenges || []).filter(sc => sc.student_id === s.id);
         const completed_count = scs.filter(sc => sc.status === 'submitted' || sc.status === 'graded').length;
+        const on_time_count = scs.filter(sc => sc.is_on_time === 1).length;
         const xp = scs.reduce((acc, sc) => acc + (sc.score || 0), 0);
         const lvl = getUserLevel(xp);
+
+        // Find group
+        let group_name = '-';
+        if (store.groups && Array.isArray(store.groups)) {
+          const g = store.groups.find(grp => grp.members && grp.members.some(m => m.id === s.id || m.student_code === s.username || m.student_code === s.student_id));
+          if (g) group_name = g.name;
+        }
+
         return {
           id: s.id,
           name: s.name,
@@ -558,12 +570,12 @@ export async function handleMockRequest(config) {
           orderNum: idx + 1,
           completed_count,
           submitted_count: completed_count,
-          on_time_count: completed_count,
-          onTimeRate: completed_count > 0 ? 100 : 0,
+          on_time_count,
+          onTimeRate: completed_count > 0 ? Math.round((on_time_count / completed_count) * 100) : 0,
           xp,
           level: lvl.level,
           levelName: lvl.nameTh,
-          group_name: '-'
+          group_name
         };
       });
     return { status: 200, data: { students } };
@@ -593,9 +605,18 @@ export async function handleMockRequest(config) {
     return { status: 200, data: { ok: true, message: 'รีเซ็ตข้อมูลสำเร็จ' } };
   }
 
-  // 8. Groups
+  // 8. Groups Management
   if (url === '/groups' && method === 'get') {
-    return { status: 200, data: { groups: store.groups || [] } };
+    const currentUser = getCurrentUser(store);
+    const groups = (store.groups || []).map(g => ({
+      ...g,
+      member_count: g.members?.length || 0
+    }));
+    let myGroup = null;
+    if (currentUser?.role === 'student') {
+      myGroup = groups.find(g => g.members?.some(m => m.id === currentUser.id || m.student_code === currentUser.username)) || null;
+    }
+    return { status: 200, data: { groups, myGroup } };
   }
 
   if (url === '/groups' && method === 'post') {
@@ -606,8 +627,37 @@ export async function handleMockRequest(config) {
     return { status: 200, data: { group: newG } };
   }
 
+  // Random grouping for all 43 students
   if (url === '/groups/random' && method === 'post') {
-    return { status: 200, data: { ok: true } };
+    const num = Number(body.numGroups) || 8;
+    const students = (store.users || []).filter(u => u.role === 'student');
+    const shuffled = [...students].sort(() => 0.5 - Math.random());
+    const newGroups = [];
+    for (let i = 0; i < num; i++) {
+      newGroups.push({
+        id: Date.now() + i,
+        name: `กลุ่ม ${String(i + 1).padStart(2, '0')}`,
+        class_id: 1,
+        members: []
+      });
+    }
+    shuffled.forEach((stu, idx) => {
+      const grpIdx = idx % num;
+      newGroups[grpIdx].members.push({
+        id: stu.id,
+        name: stu.name,
+        username: stu.username,
+        student_code: stu.student_id || stu.username
+      });
+    });
+    newGroups.forEach(g => {
+      g.member_count = g.members.length;
+      g.leader = g.members[0] || null;
+      g.leader_id = g.members[0]?.id || null;
+    });
+    store.groups = newGroups;
+    saveStore(store);
+    return { status: 200, data: { ok: true, groups: newGroups } };
   }
 
   const canvaLinkMatch = url.match(/^\/groups\/canva-link\/(\d+)$/);
@@ -632,25 +682,201 @@ export async function handleMockRequest(config) {
     return { status: 200, data: { ok: true } };
   }
 
-  // 9. Assessments
+  // 9. Research Assessments
   if (url === '/assessments/rubric-definition') {
     return { status: 200, data: RUBRIC_STRUCTURE };
   }
 
-  if (url.startsWith('/assessments/behavior')) {
-    const students = store.users.filter(u => u.role === 'student');
-    const records = students.map((s, idx) => ({
-      student_id: s.id,
-      student_name: s.name,
-      student_code: s.student_id || s.username,
-      order_num: idx + 1,
-      status: 'on_time'
-    }));
-    return { status: 200, data: { records, summary: { onTime: 43, late: 0, missing: 0, total: 43 } } };
+  // Behavior Assessment - 43 students
+  if (url.startsWith('/assessments/behavior') && method === 'get') {
+    const students = (store.users || []).filter(u => u.role === 'student');
+    store.behavior_map = store.behavior_map || {};
+    store.behavior_notes = store.behavior_notes || {};
+
+    const challengeId = params.challengeId ? Number(params.challengeId) : null;
+    let systemMap = {};
+    if (challengeId) {
+      (store.student_challenges || []).filter(sc => sc.challenge_id === challengeId).forEach(sc => {
+        systemMap[sc.student_id] = {
+          student_id: sc.student_id,
+          challenge_status: sc.status,
+          submitted_at: sc.submitted_at,
+          is_on_time: sc.is_on_time ?? 1,
+          canva_link: sc.canva_link
+        };
+      });
+    }
+
+    const result = students.map((stu, index) => {
+      const savedStatus = store.behavior_map[stu.id];
+      const sys = systemMap[stu.id];
+      let currentStatus = savedStatus !== undefined ? savedStatus : (sys ? (sys.is_on_time ? 'on_time' : 'late') : null);
+
+      return {
+        orderNum: index + 1,
+        studentId: stu.id,
+        studentCode: stu.student_id || stu.username,
+        name: stu.name,
+        className: stu.class_name || 'ปวช.1/1',
+        status: currentStatus, // 'on_time' | 'late' | 'missing' | null
+        isSaved: savedStatus !== undefined,
+        evaluatedAt: savedStatus ? new Date().toISOString() : null,
+        note: store.behavior_notes[stu.id] || '',
+        systemData: sys || null
+      };
+    });
+
+    return {
+      status: 200,
+      data: {
+        challengeId,
+        sessionName: params.sessionName || 'ทั่วไป',
+        students: result,
+        summary: {
+          total: result.length,
+          onTimeCount: result.filter(r => r.status === 'on_time').length,
+          lateCount: result.filter(r => r.status === 'late').length,
+          missingCount: result.filter(r => r.status === 'missing').length
+        }
+      }
+    };
   }
 
-  if (url.startsWith('/assessments/skills')) {
-    return { status: 200, data: { skills: [], total: 0 } };
+  if (url === '/assessments/behavior/batch' && method === 'post') {
+    store.behavior_map = store.behavior_map || {};
+    store.behavior_notes = store.behavior_notes || {};
+    const { assessments } = body;
+    if (Array.isArray(assessments)) {
+      assessments.forEach(a => {
+        if (a.studentId) {
+          store.behavior_map[a.studentId] = a.status;
+          if (a.note !== undefined) store.behavior_notes[a.studentId] = a.note;
+        }
+      });
+    }
+    saveStore(store);
+    return { status: 200, data: { success: true, count: assessments?.length || 0 } };
+  }
+
+  if (url === '/assessments/behavior/auto-sync' && method === 'post') {
+    store.behavior_map = store.behavior_map || {};
+    const cid = Number(body.challengeId);
+    let synced = 0;
+    (store.student_challenges || []).filter(sc => sc.challenge_id === cid).forEach(sc => {
+      if (sc.status === 'submitted' || sc.status === 'graded') {
+        store.behavior_map[sc.student_id] = sc.is_on_time ? 'on_time' : 'late';
+        synced++;
+      } else {
+        store.behavior_map[sc.student_id] = 'missing';
+        synced++;
+      }
+    });
+    saveStore(store);
+    return { status: 200, data: { success: true, syncedCount: synced } };
+  }
+
+  // Skills Assessment - 43 students
+  if (url.startsWith('/assessments/skills') && method === 'get') {
+    const students = (store.users || []).filter(u => u.role === 'student');
+    store.skill_assessments = store.skill_assessments || {};
+    const assessmentType = params.assessmentType || 'post';
+
+    const result = students.map((stu, index) => {
+      const key = `${stu.id}_${assessmentType}`;
+      const a = store.skill_assessments[key];
+      return {
+        orderNum: index + 1,
+        studentId: stu.id,
+        studentCode: stu.student_id || stu.username,
+        name: stu.name,
+        className: stu.class_name || 'ปวช.1/1',
+        isEvaluated: !!a,
+        scores: a?.scores || {},
+        totalScore: a?.totalScore || 0,
+        scorePercentage: a?.scorePercentage || 0,
+        qualityLevel: a?.qualityLevel || 'ยังไม่ประเมิน',
+        comments: a?.comments || '',
+        evaluatorName: 'นางสาวศิริประภา สมบัติคำ',
+        evaluatedAt: a?.evaluatedAt || null
+      };
+    });
+
+    const evaluatedOnly = result.filter(r => r.isEvaluated);
+    const avgScore = evaluatedOnly.length > 0 
+      ? Number((evaluatedOnly.reduce((acc, cur) => acc + cur.totalScore, 0) / evaluatedOnly.length).toFixed(2))
+      : 0;
+    const avgPercent = evaluatedOnly.length > 0
+      ? Number((evaluatedOnly.reduce((acc, cur) => acc + cur.scorePercentage, 0) / evaluatedOnly.length).toFixed(2))
+      : 0;
+
+    return {
+      status: 200,
+      data: {
+        students: result,
+        summary: {
+          total: result.length,
+          evaluatedCount: evaluatedOnly.length,
+          averageScore: avgScore,
+          averagePercentage: avgPercent
+        }
+      }
+    };
+  }
+
+  if (url === '/assessments/skills' && method === 'post') {
+    store.skill_assessments = store.skill_assessments || {};
+    const { studentId, assessmentType = 'post', scores = {}, comments = '' } = body;
+    const key = `${studentId}_${assessmentType}`;
+
+    let sum = 0;
+    let count = 0;
+    Object.values(scores).forEach(s => { sum += Number(s) || 0; count++; });
+    const percent = count > 0 ? Number(((sum / (21 * 5)) * 100).toFixed(2)) : 0;
+    let quality = 'ปรับปรุง';
+    if (percent >= 80) quality = 'ดีเยี่ยม';
+    else if (percent >= 70) quality = 'ดีมาก';
+    else if (percent >= 60) quality = 'ปานกลาง';
+    else if (percent >= 50) quality = 'พอใช้';
+
+    store.skill_assessments[key] = {
+      scores,
+      totalScore: sum,
+      scorePercentage: percent,
+      qualityLevel: quality,
+      comments,
+      evaluatorName: 'นางสาวศิริประภา สมบัติคำ',
+      evaluatedAt: new Date().toISOString()
+    };
+
+    saveStore(store);
+    return { status: 200, data: { success: true, saved: store.skill_assessments[key] } };
+  }
+
+  // Export CSV
+  if (url.startsWith('/assessments/export/behavior/csv')) {
+    const students = (store.users || []).filter(u => u.role === 'student');
+    store.behavior_map = store.behavior_map || {};
+    let csv = '\uFEFFลำดับ,รหัสนักเรียน,ชื่อ-สกุล,ชั้นเรียน,ส่งตรงเวลา,ส่งล่าช้า,ไม่ส่งงาน,สถานะ,หมายเหตุ\n';
+    students.forEach((s, idx) => {
+      const st = store.behavior_map[s.id] || 'on_time';
+      const onTime = st === 'on_time' ? '1' : '0';
+      const late = st === 'late' ? '1' : '0';
+      const missing = st === 'missing' ? '1' : '0';
+      const label = st === 'on_time' ? 'ส่งตรงเวลา' : (st === 'late' ? 'ส่งล่าช้า' : 'ไม่ส่งงาน');
+      csv += `${idx + 1},"${s.student_id || s.username}","${s.name}","${s.class_name || 'ปวช.1/1'}",${onTime},${late},${missing},"${label}",""\n`;
+    });
+    return { status: 200, data: csv, headers: { 'content-type': 'text/csv; charset=utf-8' } };
+  }
+
+  if (url.startsWith('/assessments/export/skills/csv')) {
+    const students = (store.users || []).filter(u => u.role === 'student');
+    store.skill_assessments = store.skill_assessments || {};
+    let csv = '\uFEFFลำดับ,รหัสนักเรียน,ชื่อ-สกุล,ชั้นเรียน,คะแนนรวม (เต็ม 105),ร้อยละ,ระดับคุณภาพ,ข้อคิดเห็น\n';
+    students.forEach((s, idx) => {
+      const a = store.skill_assessments[`${s.id}_post`] || store.skill_assessments[`${s.id}_pre`];
+      csv += `${idx + 1},"${s.student_id || s.username}","${s.name}","${s.class_name || 'ปวช.1/1'}",${a?.totalScore || 0},${a?.scorePercentage || 0},"${a?.qualityLevel || 'ยังไม่ประเมิน'}","${a?.comments || ''}"\n`;
+    });
+    return { status: 200, data: csv, headers: { 'content-type': 'text/csv; charset=utf-8' } };
   }
 
   // 10. Analytics
