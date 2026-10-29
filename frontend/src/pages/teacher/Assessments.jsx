@@ -31,7 +31,7 @@ export default function TeacherAssessments() {
 
   // ─── Behavior State ───
   const [behaviorStudents, setBehaviorStudents] = useState([]);
-  const [behaviorSummary, setBehaviorSummary] = useState({ total: 43, onTimeCount: 0, lateCount: 0, missingCount: 0 });
+  const [behaviorSummary, setBehaviorSummary] = useState({ total: 38, onTimeCount: 0, lateCount: 0, missingCount: 0 });
   const [savingBehavior, setSavingBehavior] = useState(false);
   const [syncingBehavior, setSyncingBehavior] = useState(false);
 
@@ -93,7 +93,7 @@ export default function TeacherAssessments() {
       const url = cid ? `/assessments/behavior?challengeId=${cid}` : '/assessments/behavior';
       const res = await api.get(url);
       setBehaviorStudents(res.data.students || []);
-      setBehaviorSummary(res.data.summary || { total: 43, onTimeCount: 0, lateCount: 0, missingCount: 0 });
+      setBehaviorSummary(res.data.summary || { total: 38, onTimeCount: 0, lateCount: 0, missingCount: 0 });
     } catch (err) {
       console.error(err);
     } finally {
@@ -596,7 +596,7 @@ export default function TeacherAssessments() {
               </div>
               <div className="flex items-center gap-3">
                 <span className="text-[11px] text-gray-400">💡 คลิกซ้ำที่ตัวเลือกเดิมเพื่อล้างค่า (ยกเลิก)</span>
-                <span className="text-xs text-gray-400 font-medium">แสดง {filteredBehavior.length} จาก 43 คน</span>
+                <span className="text-xs text-gray-400 font-medium">แสดง {filteredBehavior.length} จาก {behaviorSummary.total || 38} คน</span>
               </div>
             </div>
 
@@ -794,7 +794,7 @@ export default function TeacherAssessments() {
                     skillMode === 'table' ? 'bg-white text-primary shadow-xs' : 'text-gray-600'
                   }`}
                 >
-                  📊 ตารางสรุปทั้งห้อง (43 คน)
+                  📊 ตารางสรุปทั้งห้อง ({skillsStudents.length || 38} คน)
                 </button>
               </div>
             </div>
@@ -872,7 +872,7 @@ export default function TeacherAssessments() {
                       )}
                     </div>
                     <p className="text-xs text-gray-500 mt-0.5">
-                      ลำดับที่ {currentStudent.orderNum} จาก 43 คน · ห้อง {currentStudent.className || 'ปวช.1/1'}
+                      ลำดับที่ {currentStudent.orderNum} จาก {skillsStudents.length || 38} คน · ห้อง {currentStudent.className || 'ปวช.1/1'}
                     </p>
                   </div>
                 </div>
@@ -1081,7 +1081,7 @@ export default function TeacherAssessments() {
                 {/* Save Buttons (No-print) */}
                 <div className="no-print pt-4 border-t flex flex-wrap items-center justify-between gap-3">
                   <div className="text-xs text-gray-400">
-                    ประเมินแล้ว {skillsStudents.filter(s => s.isEvaluated).length} จาก 43 คน
+                    ประเมินแล้ว {skillsStudents.filter(s => s.isEvaluated).length} จาก {skillsStudents.length || 38} คน
                   </div>
                   <div className="flex items-center gap-2">
                     <button
@@ -1115,7 +1115,7 @@ export default function TeacherAssessments() {
                   <div className="card p-4 border-l-4 border-primary">
                     <p className="text-[11px] text-gray-400 font-bold uppercase">ประเมินแล้ว</p>
                     <h3 className="text-2xl font-bold text-gray-800">
-                      {skillsSummary.evaluatedCount} <span className="text-xs font-normal text-gray-500">/ 43 คน</span>
+                      {skillsSummary.evaluatedCount} <span className="text-xs font-normal text-gray-500">/ {skillsSummary.totalStudents || skillsStudents.length || 38} คน</span>
                     </h3>
                   </div>
                   <div className="card p-4 border-l-4 border-blue-500">
@@ -1146,7 +1146,7 @@ export default function TeacherAssessments() {
                     ตารางสรุปผลการประเมินทักษะการปฏิบัติงาน (รายวิชาโปรแกรมนำเสนอ ปวช.1)
                   </h2>
                   <p className="text-xs text-gray-600">
-                    รอบการประเมิน: <strong>{assessmentType === 'pre' ? 'ก่อนจัดการเรียนรู้ (Pre-test)' : (assessmentType === 'post' ? 'หลังจัดการเรียนรู้ (Post-test)' : 'ตามกิจกรรม Challenge')}</strong> · นักเรียน 43 คน
+                    รอบการประเมิน: <strong>{assessmentType === 'pre' ? 'ก่อนจัดการเรียนรู้ (Pre-test)' : (assessmentType === 'post' ? 'หลังจัดการเรียนรู้ (Post-test)' : 'ตามกิจกรรม Challenge')}</strong> · นักเรียน {skillsSummary?.totalStudents || skillsStudents.length || 38} คน
                   </p>
                 </div>
 
@@ -1258,7 +1258,7 @@ export default function TeacherAssessments() {
                   ผลการประเมินแบบทดสอบก่อนเรียนและหลังเรียน (Pre-test & Post-test)
                 </h2>
                 <p className="text-xs text-gray-500 mt-1">
-                  วิชาโปรแกรมนำเสนอ (Microsoft PowerPoint) · 10 ข้อ 4 ตัวเลือก · นักเรียน 43 คน
+                  วิชาโปรแกรมนำเสนอ (Microsoft PowerPoint) · 10 ข้อ 4 ตัวเลือก · นักเรียน {quizClassSummary?.stats?.totalStudents ?? 38} คน
                 </p>
               </div>
 
@@ -1286,7 +1286,7 @@ export default function TeacherAssessments() {
                   {quizClassSummary?.stats?.avgPre ?? '0.00'} <span className="text-sm font-normal text-gray-400">/ 10</span>
                 </p>
                 <p className="text-[11px] text-amber-700">
-                  ทำแล้ว {quizClassSummary?.stats?.totalPre ?? 0} จาก {quizClassSummary?.stats?.totalStudents ?? 43} คน
+                  ทำแล้ว {quizClassSummary?.stats?.totalPre ?? 0} จาก {quizClassSummary?.stats?.totalStudents ?? 38} คน
                 </p>
               </div>
 
@@ -1296,7 +1296,7 @@ export default function TeacherAssessments() {
                   {quizClassSummary?.stats?.avgPost ?? '0.00'} <span className="text-sm font-normal text-gray-400">/ 10</span>
                 </p>
                 <p className="text-[11px] text-emerald-700">
-                  ทำแล้ว {quizClassSummary?.stats?.totalPost ?? 0} จาก {quizClassSummary?.stats?.totalStudents ?? 43} คน
+                  ทำแล้ว {quizClassSummary?.stats?.totalPost ?? 0} จาก {quizClassSummary?.stats?.totalStudents ?? 38} คน
                 </p>
               </div>
 

@@ -342,7 +342,7 @@ export default function Students() {
                   <h3 className="font-bold text-lg text-gray-900">
                     {modalMode === 'single' && `ล้างค่าข้อมูล: ${targetStudent?.name}`}
                     {modalMode === 'batch' && `ล้างค่าข้อมูลให้นักเรียนที่เลือก (${selectedIds.length} คน)`}
-                    {modalMode === 'class' && 'ล้างค่าข้อมูลนักเรียนทั้งห้อง (43 คน)'}
+                    {modalMode === 'class' && `ล้างค่าข้อมูลนักเรียนทั้งห้อง (${students.length || 38} คน)`}
                   </h3>
                   <p className="text-xs text-gray-500 mt-0.5">
                     {modalMode === 'single' && `รหัสนักเรียน: ${targetStudent?.student_code || targetStudent?.username}`}

@@ -1,7 +1,7 @@
 import initialData from './initialData.json';
 import { POWERPOINT_QUIZ_QUESTIONS } from '../data/quizQuestions';
 
-const STORAGE_KEY = 'cbl_mock_db_clean_v6';
+export const STORAGE_KEY = 'cbl_mock_db_clean_v8';
 
 // Rubric definition
 export const RUBRIC_STRUCTURE = {
@@ -68,25 +68,51 @@ export const RUBRIC_STRUCTURE = {
 
 function getStore() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    let raw = localStorage.getItem(STORAGE_KEY);
+    // Auto-migrate from previous versions if not found under v8 key
+    if (!raw) {
+      raw = localStorage.getItem('cbl_mock_db_clean_v6') || localStorage.getItem('cbl_mock_db');
+    }
+
     if (raw) {
       const parsed = JSON.parse(raw);
-      // Auto-upgrade / sync to clean state if version < 7
-      if (!parsed.version || parsed.version < 7) {
-        parsed.version = 7;
-        parsed.groups = (parsed.groups && parsed.groups.length > 0) ? parsed.groups : (initialData.groups || []);
-        parsed.student_challenges = [];
-        parsed.submissions = [];
-        parsed.scores = [];
-        parsed.feedback = [];
-        parsed.reflections = [];
-        parsed.mission_progress = [];
-        parsed.checklist_completions = [];
-        parsed.student_badges = [];
-        parsed.activity_logs = [];
+      const studentCount = (parsed.users || []).filter(u => u.role === 'student').length;
+
+      // Auto-upgrade / sync to 38 students if version < 8 or student count is not 38
+      if (!parsed.version || parsed.version < 8 || studentCount !== 38) {
+        parsed.version = 8;
+        // Always sync users and class enrollments directly from initialData.json (38 students)
+        parsed.users = initialData.users || [];
+        parsed.class_enrollments = initialData.class_enrollments || [];
+
+        // Clean up references to students who are no longer in class
+        const validStudentIds = new Set(parsed.users.filter(u => u.role === 'student').map(u => u.id));
+        if (Array.isArray(parsed.group_members)) {
+          parsed.group_members = parsed.group_members.filter(gm => validStudentIds.has(gm.student_id));
+        }
+        if (Array.isArray(parsed.student_challenges)) {
+          parsed.student_challenges = parsed.student_challenges.filter(sc => validStudentIds.has(sc.student_id));
+          const validScIds = new Set(parsed.student_challenges.map(sc => sc.id));
+          if (Array.isArray(parsed.submissions)) parsed.submissions = parsed.submissions.filter(s => validScIds.has(s.student_challenge_id));
+          if (Array.isArray(parsed.checklist_completions)) parsed.checklist_completions = parsed.checklist_completions.filter(cc => validScIds.has(cc.student_challenge_id));
+          if (Array.isArray(parsed.mission_progress)) parsed.mission_progress = parsed.mission_progress.filter(mp => validScIds.has(mp.student_challenge_id));
+          if (Array.isArray(parsed.reflections)) parsed.reflections = parsed.reflections.filter(r => validScIds.has(r.student_challenge_id));
+          if (Array.isArray(parsed.scores)) parsed.scores = parsed.scores.filter(s => validScIds.has(s.student_challenge_id));
+          if (Array.isArray(parsed.feedback)) parsed.feedback = parsed.feedback.filter(f => validScIds.has(f.student_challenge_id));
+        }
+        if (Array.isArray(parsed.xp_log)) {
+          parsed.xp_log = parsed.xp_log.filter(x => validStudentIds.has(x.student_id));
+        }
+        if (Array.isArray(parsed.student_badges)) {
+          parsed.student_badges = parsed.student_badges.filter(sb => validStudentIds.has(sb.student_id));
+        }
+        if (Array.isArray(parsed.activity_logs)) {
+          parsed.activity_logs = parsed.activity_logs.filter(al => validStudentIds.has(al.user_id));
+        }
         saveStore(parsed);
       }
-      // Auto-heal only if parsed.challenges is missing or not an array
+
+      // Auto-heal challenges array if missing
       if (!Array.isArray(parsed.challenges)) {
         parsed.challenges = initialData.challenges || [];
         parsed.missions = (parsed.missions && parsed.missions.length > 0) ? parsed.missions : (initialData.missions || []);
@@ -100,7 +126,7 @@ function getStore() {
   }
   // Initialize with clean data from initialData.json
   const store = {
-    version: 7,
+    version: 8,
     users: initialData.users || [],
     classes: initialData.classes || [],
     class_enrollments: initialData.class_enrollments || [],
@@ -1837,7 +1863,7 @@ export async function handleMockRequest(config) {
   // 10. Analytics
   if (url === '/analytics/class') {
     const students = (store.users || []).filter(u => u.role === 'student');
-    const totalStudents = students.length || 43;
+    const totalStudents = students.length || 38;
     const challenges = (store.challenges || []).filter(c => c.status === 'active');
     
     let submitted = 0;

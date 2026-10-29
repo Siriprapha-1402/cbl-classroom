@@ -7,7 +7,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [challenges, setChallenges] = useState([]);
   const [summary, setSummary] = useState({});
-  const [totalStudents, setTotalStudents] = useState(43);
+  const [totalStudents, setTotalStudents] = useState(38);
   const [liveActivity, setLiveActivity] = useState({ activeCount: 0, inProgressCount: 0, notStartedCount: 0, submittedCount: 0 });
   const [loading, setLoading] = useState(true);
 
@@ -23,7 +23,7 @@ export default function Dashboard() {
       const aData = aRes.data || {};
       const aSummary = aData.summary || {};
 
-      const studentCount = sList.length || aSummary.totalStudents || aData.totalStudents || 43;
+      const studentCount = sList.length || aSummary.totalStudents || aData.totalStudents || 38;
       setTotalStudents(studentCount);
       setChallenges(cList);
 
@@ -57,7 +57,7 @@ export default function Dashboard() {
     } catch (e) {}
 
     const handleSync = (e) => {
-      if (!e?.key || e.key === 'cbl_mock_db_clean_v6') loadDashboardData();
+      if (!e?.key || e.key.startsWith('cbl_mock_db')) loadDashboardData();
     };
 
     window.addEventListener('storage', handleSync);
@@ -164,7 +164,7 @@ export default function Dashboard() {
           <div className="space-y-3">
             {challenges.map(c => {
               const submitted = c.submitted_count || 0;
-              const total = totalStudents || summary.totalStudents || 43;
+              const total = totalStudents || summary.totalStudents || 38;
               const pct = total > 0 ? Math.round((submitted / total) * 100) : 0;
               return (
                 <div key={c.id} onClick={() => navigate('/teacher/submissions')}

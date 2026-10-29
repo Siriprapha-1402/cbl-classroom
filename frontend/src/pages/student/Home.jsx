@@ -36,7 +36,7 @@ export default function Home() {
     } catch (e) {}
 
     const handleSync = (e) => {
-      if (!e?.key || e.key === 'cbl_mock_db_clean_v6') loadData();
+      if (!e?.key || e.key.startsWith('cbl_mock_db')) loadData();
     };
 
     window.addEventListener('storage', handleSync);

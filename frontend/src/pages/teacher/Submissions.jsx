@@ -70,7 +70,7 @@ export default function Submissions() {
     } catch (e) {}
 
     const handleSync = (e) => {
-      if (!e?.key || e.key === 'cbl_mock_db_clean_v6') {
+      if (!e?.key || e.key.startsWith('cbl_mock_db')) {
         refreshLive(selectedChallenge);
       }
     };
