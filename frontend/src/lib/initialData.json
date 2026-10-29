@@ -90,7 +90,7 @@
     },
     {
       "id": 19,
-      "name": "เด็กหญิงณัฐธิดา สิงห์ทอง",
+      "name": "นางสาวณัฐธิดา สิงห์ทอง",
       "username": "69219100008",
       "password_hash": "$2a$10$oagMX16zoZo1sHdUQib4Dez6yaNBgaCnkKY4eX07Ko2kn1icIy9cK",
       "role": "student",
@@ -112,7 +112,7 @@
     },
     {
       "id": 21,
-      "name": "เด็กหญิงธัญญานุช รัสมี",
+      "name": "นางสาวธัญญานุช รัสมี",
       "username": "69219100010",
       "password_hash": "$2a$10$TSyPQjEY5l7Vk.f8aw2kf.J8WfsW4vx0/xLccuHh85Tcijo2OhybS",
       "role": "student",
@@ -145,7 +145,7 @@
     },
     {
       "id": 24,
-      "name": "เด็กหญิงปวิชญา บัวไข",
+      "name": "นางสาวปวิชญา บัวไข",
       "username": "69219100013",
       "password_hash": "$2a$10$LWqQ6pdGo7/hnswdOw93BOAOOq5K8NF3a.FwvuyDJgzjMyrJG7qbO",
       "role": "student",
@@ -178,7 +178,7 @@
     },
     {
       "id": 27,
-      "name": "เด็กหญิงภัทรมัย ขันแก้ว",
+      "name": "นางสาวภัทรมัย ขันแก้ว",
       "username": "69219100016",
       "password_hash": "$2a$10$fLnRT91GwyfbaUHegS4TQed9.sTNd3JEWTmXv8Ojwl8/w.oK5hOvy",
       "role": "student",
@@ -222,7 +222,7 @@
     },
     {
       "id": 31,
-      "name": "เด็กหญิงอภิญญา แปรงกระโทก",
+      "name": "นางสาวอภิญญา แปรงกระโทก",
       "username": "69219100020",
       "password_hash": "$2a$10$mv.bDcpMP3VI2PvyuaA.u.8B01eNdkQSBt4aNCnObpmLORKvNAMPe",
       "role": "student",
@@ -255,7 +255,7 @@
     },
     {
       "id": 34,
-      "name": "เด็กหญิงกิตติยาภา เครือบนอก",
+      "name": "นางสาวกิตติยาภา เครือบนอก",
       "username": "69219100023",
       "password_hash": "$2a$10$Vdb/WjSZ1u.Zi9NCNDoJPegpiHL6LupLNqXegFZ8ta3DSBIDlAyAW",
       "role": "student",
@@ -321,7 +321,7 @@
     },
     {
       "id": 40,
-      "name": "เด็กหญิงณัฐณชา ศรีวิรัตน์",
+      "name": "นางสาวณัฐณิชา ศรีวิรัตน์",
       "username": "69219100029",
       "password_hash": "$2a$10$mHqsSDvyb1ZK93mazw0..uG2.IHDwPVB8EAuVOruIyXKeHZcaVoZq",
       "role": "student",
@@ -342,17 +342,6 @@
       "created_at": "2026-09-16 02:29:02"
     },
     {
-      "id": 42,
-      "name": "นายธนินทร์ คุ้มภัย",
-      "username": "69219100031",
-      "password_hash": "$2a$10$G79.e3v.rA2mp8ymhP84AuW/hmF8ZbiG2DRhpFP4IfDmZVsybvVkS",
-      "role": "student",
-      "avatar": null,
-      "student_id": "69219100031",
-      "class_name": "ปวช.1/1",
-      "created_at": "2026-09-16 02:29:02"
-    },
-    {
       "id": 43,
       "name": "นางสาวธัญพร สินเจริญ",
       "username": "69219100032",
@@ -362,17 +351,6 @@
       "student_id": "69219100032",
       "class_name": "ปวช.1/1",
       "created_at": "2026-09-16 02:29:02"
-    },
-    {
-      "id": 44,
-      "name": "นางสาวน้ำผึ้ง สายกลาง",
-      "username": "69219100033",
-      "password_hash": "$2a$10$iQwlqL1ea5k15MNKHNcf.elVuYacrNIqDrpsOhDOy6FgRFQWdtMFG",
-      "role": "student",
-      "avatar": null,
-      "student_id": "69219100033",
-      "class_name": "ปวช.1/1",
-      "created_at": "2026-09-16 02:29:03"
     },
     {
       "id": 45,
@@ -408,17 +386,6 @@
       "created_at": "2026-09-16 02:29:03"
     },
     {
-      "id": 48,
-      "name": "เด็กหญิงภัทรธิดา พวงเนียม",
-      "username": "69219100037",
-      "password_hash": "$2a$10$XVVArAGXPHMQAvHB7LS2MueivLL7hb4WZN3duax1U6/Usy.6sjlN6",
-      "role": "student",
-      "avatar": null,
-      "student_id": "69219100037",
-      "class_name": "ปวช.1/1",
-      "created_at": "2026-09-16 02:29:03"
-    },
-    {
       "id": 49,
       "name": "นายยงยศ คงเนียม",
       "username": "69219100038",
@@ -431,7 +398,7 @@
     },
     {
       "id": 50,
-      "name": "เด็กหญิงวรัญญา กล่อมใจ",
+      "name": "นางสาววรัญญา กล่อมใจ",
       "username": "69219100039",
       "password_hash": "$2a$10$UUH9uN6cIHAlp/KVjoM.K.KQiXkz3.lzvyNFs5pru29OeUnAiEu2O",
       "role": "student",
@@ -441,30 +408,8 @@
       "created_at": "2026-09-16 02:29:03"
     },
     {
-      "id": 51,
-      "name": "นางสาวศิริประภา ใจวัง",
-      "username": "69219100040",
-      "password_hash": "$2a$10$kKW0EmRn5Mc8/MSagMafaevMFdK/AJ2QPKwZ5GkYWtiaduGGSHW66",
-      "role": "student",
-      "avatar": null,
-      "student_id": "69219100040",
-      "class_name": "ปวช.1/1",
-      "created_at": "2026-09-16 02:29:03"
-    },
-    {
-      "id": 52,
-      "name": "นางสาวสุธิดา จันทรา",
-      "username": "69219100041",
-      "password_hash": "$2a$10$w4ercW53VRcoyTBYQDDz/.zo36fYyKnBjSiiGnmErV9iPnUiXKGKq",
-      "role": "student",
-      "avatar": null,
-      "student_id": "69219100041",
-      "class_name": "ปวช.1/1",
-      "created_at": "2026-09-16 02:29:03"
-    },
-    {
       "id": 53,
-      "name": "เด็กหญิงอรณิชา ปัตตะโชติ",
+      "name": "นางสาวอรณิชา ปัตตะโชติ",
       "username": "69219100042",
       "password_hash": "$2a$10$xqE3TOBMYyWCKu.n6vwcmubxBoIh.5p5avJQUcIFET3iMsub8mi/e",
       "role": "student",
@@ -474,15 +419,15 @@
       "created_at": "2026-09-16 02:29:04"
     },
     {
-      "id": 54,
-      "name": "นางสาวอารยา ทาตะนาม",
-      "username": "69219100043",
-      "password_hash": "$2a$10$.GibsgS2ifm0K2F7i9VqGucQs2xSpPfIHUFA.6UT0g82pwmb.gUpm",
+      "id": 66,
+      "name": "นายวรสรณ์ ทรงสีดา",
+      "username": "69219100044",
+      "password_hash": "$2a$10$IvsWMrICf8yy3cAoJhFtRekQs0DCsWBANESJlbC9VtyGU21Q1rDL2",
       "role": "student",
       "avatar": null,
-      "student_id": "69219100043",
+      "student_id": "69219100044",
       "class_name": "ปวช.1/1",
-      "created_at": "2026-09-16 02:29:04"
+      "created_at": "2026-10-29 01:59:03"
     }
   ],
   "classes": [
@@ -676,22 +621,10 @@
       "enrolled_at": "2026-09-16 02:29:02"
     },
     {
-      "id": 41,
-      "student_id": 42,
-      "class_id": 1,
-      "enrolled_at": "2026-09-16 02:29:02"
-    },
-    {
       "id": 42,
       "student_id": 43,
       "class_id": 1,
       "enrolled_at": "2026-09-16 02:29:02"
-    },
-    {
-      "id": 43,
-      "student_id": 44,
-      "class_id": 1,
-      "enrolled_at": "2026-09-16 02:29:03"
     },
     {
       "id": 44,
@@ -712,12 +645,6 @@
       "enrolled_at": "2026-09-16 02:29:03"
     },
     {
-      "id": 47,
-      "student_id": 48,
-      "class_id": 1,
-      "enrolled_at": "2026-09-16 02:29:03"
-    },
-    {
       "id": 48,
       "student_id": 49,
       "class_id": 1,
@@ -730,28 +657,16 @@
       "enrolled_at": "2026-09-16 02:29:03"
     },
     {
-      "id": 50,
-      "student_id": 51,
-      "class_id": 1,
-      "enrolled_at": "2026-09-16 02:29:03"
-    },
-    {
-      "id": 51,
-      "student_id": 52,
-      "class_id": 1,
-      "enrolled_at": "2026-09-16 02:29:03"
-    },
-    {
       "id": 52,
       "student_id": 53,
       "class_id": 1,
       "enrolled_at": "2026-09-16 02:29:04"
     },
     {
-      "id": 53,
-      "student_id": 54,
+      "id": 64,
+      "student_id": 66,
       "class_id": 1,
-      "enrolled_at": "2026-09-16 02:29:04"
+      "enrolled_at": "2026-10-29 01:59:03"
     }
   ],
   "groups": [

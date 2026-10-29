@@ -72,7 +72,7 @@ app.listen(PORT, () => {
 
   📋 Accounts:
      Teacher:  Teacheradmin / teacheradmin101
-     Student:  รหัสนักเรียน (69219100001 - 69219100043) / รหัสนักเรียน
+     Student:  รหัสนักเรียน (69219100001 - 69219100044) รวม 38 คน / รหัสนักเรียน
 
   🔗 API Base: http://localhost:${PORT}/api
   `);

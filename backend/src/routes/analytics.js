@@ -1,3 +1,4 @@
+
 import express from 'express';
 import db from '../db/db.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
@@ -29,6 +30,7 @@ router.get('/class', (req, res) => {
       else notStarted++;
     });
   });
+
 
   // Per-challenge stats
   const challengeStats = challenges.map(c => {
